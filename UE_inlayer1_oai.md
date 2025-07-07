@@ -224,7 +224,7 @@ case 6:
 使用位移運算（>>）和&mask 提取 12 位元（2 個 6 位元符號），查詢 nr_64qam_mod_table，最後每個 64-QAM 符號由兩個 int16_t 表示，存入 out。
 ```
 
-- 層映射 (nr_layer_mapping, nr_ue_layer_mapping)：將調變後的符號分配到多個傳輸層 (layers)，支援 MIMO (多輸入多輸出)。
+- Layer mapping (nr_layer_mapping, nr_ue_layer_mapping)：將調變後的符號分配到多個傳輸層 (layers)，支援 MIMO (多輸入多輸出)。
   - 參數：
        - nbCodes：編碼單元數（Codewords），通常為 1 或 2，代表獨立的data flow。
        - encoded_len：每個編碼單元的符號長度。
@@ -233,16 +233,16 @@ case 6:
        - layerSz：每層的符號數量。
        - n_symbs：總符號數量，表示要處理的資料量。
        - tx_layers：輸出層資料，格式為 c16_t 陣列，每層儲存 layerSz 個符號
-   - 以4個layer為例，資料位元每4個各自到不同的4層，從這些層最終會映射到不同的天線端口，實現 MIMO 傳輸。而依照裝置有分:
-     - 基站 (gNB)：使用 nr_layer_mapping 處理下行傳輸（如 PDSCH），支援 1 到 4 層的 MIMO，並利用 SIMD 指令（AVX512、AVX2）優化，高資料速率和多天線配置。
-     - UE：使用 nr_ue_layer_mapping 處理上行傳輸（如 PUSCH），支援簡單的層映射和幅度縮放。通常層數較少（1 或 2 層），因為 UE 的天線數量和功率受限。
+   - 以4個layer為例，資料位元每4個各自到不同的4層，從這些層最終會映射到不同的天線，實現 MIMO 傳輸。而依照裝置有分:
+     - 基站 (gNB)：使用 nr_layer_mapping 處理下行傳輸（如 PDSCH），支援 1 到 4 層的 MIMO，並利用 SIMD 指令（AVX512、AVX2）優化，高資料速率和多天線分配。
+     - UE：使用 nr_ue_layer_mapping 處理上行傳輸（如 PUSCH），支援簡單的映射。通常層數較少（1 或 2 層），因為 UE 的天線數量和功率受限。
 - DFT (nr_dft)：對上行資料執行 DFT 轉換（適用於 DFT-s-OFDM，SC-FDMA）。
   - 負責將層映射後的時域調變符號（例如 QPSK 或 16-QAM 符號）轉換為頻域資料。生成類似單載波的信號，降低 PAPR。為子載波映射提供頻域資料，確保 DFT-s-OFDM 波形的正確生成。
   - 參數：
      - d：輸入時域資料，格式為 int32_t（通常表示 c16_t，即 16 位元整數表示實部和虛部的複數符號，Q15 固定點數格式）。
            這些是層映射後的調變符號（例如 QPSK 或 16-QAM），來自 nr_ue_layer_mapping 的 tx_layers[l]。
      - z：輸出頻域資料，格式同樣為 int32_t（c16_t），儲存 DFT 轉換後的結果。
-     - Msc_PUSCH：DFT 大小，等於分配的子載波數量，通常為資源塊數 (N_RB) × 12（每個資源塊包含 12 個子載波）。
+     - Msc_PUSCH：DFT 大小，等於分配的子載波數量，通常為N_RB × 12（每個RB包含 12 個子載波）。
 - 符號旋轉 (perform_symbol_rotation, init_symbol_rotation, init_timeshift_rotation)：校正頻域或時域的相位偏移。
   - perform_symbol_rotation()：
     為每個 OFDM symbol 計算一個 複數旋轉因子（ phase compensation）=e^{j2πf0t}，對應到 TX/RX 的頻率偏移。
@@ -252,7 +252,6 @@ case 6:
     來計算整個 frame（或 subframe）裡每個 symbol 的旋轉值。
   - init_timeshift_rotation():
     接收時，FFT 的起點與實際 symbol 開始不完全對齊，會造成時域偏移對頻域符號造成的相位偏移。
-    在此函數做補償。
 - 預編碼 (nr_layer_precoder, nr_layer_precoder_cm, nr_layer_precoder_simd)：應用預編碼矩陣以適應多天線傳輸。
   - Layer → Antenna 的變換（linear precoding），依據 PMI (Precoding Matrix Indicator) 所對應的預編碼矩陣，把每個 Layer 的資料加權相加後分配到每根天線。
   - c16_t nr_layer_precoder():
