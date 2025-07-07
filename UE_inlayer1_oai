@@ -1,0 +1,77 @@
+# catalog
+## PHY/
+```
+                    【 Downlink: gNB TX (模擬傳送端)】
+
+Input: MAC PDU (bytes)
+        ↓
+┌──────────────────────────────┐
+│ CRC 附加 (crc_byte.c)          │
+│ Output: bits + CRC           │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Segmentation (nr_segmentation.c) │
+│ Output: LDPC segments (bits) │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ LDPC 編碼 (nr_dlsch_coding.c + CODING/) │
+│ Output: encoded bits         │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Rate Matching + Interleaving │
+│ Output: RM bits              │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ 調變 (Modulation: QPSK, 16QAM) │
+│ Output: complex symbols (IQ) │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ OFDM IFFT + CP 加入 (ofdm_mod.c) │
+│ Output: time-domain samples │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ 模擬通道:  │
+│ Input: TX samples            │
+│ Output: RX samples           │
+└────────────┬─────────────────┘
+             ↓
+
+                    【 Uplink: gNB RX (模擬接收端)】
+
+┌──────────────────────────────┐
+│ OFDM FFT + CP 去除 (ofdm_mod.c) │
+│ Input: RX samples            │
+│ Output: frequency-domain symbols │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ 通道估計 / 等化(nr_ulsch_demodulation.c)│
+│ Output: equalized symbols   │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ LLR 計算 (nr_ulsch_llr_computation.c) │
+│ Output: soft bits (LLRs)    │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Rate Dematching              │
+│ Input: LLRs                  │
+│ Output: code blocks          │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ LDPC 解碼 (nr_ulsch_decoding.c) │
+│ Output: decoded bits         │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ CRC 檢查 + Segment 合併       │
+│ Output: MAC SDU (bytes)      │
+└──────────────────────────────┘
