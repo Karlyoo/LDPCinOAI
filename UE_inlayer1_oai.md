@@ -152,7 +152,7 @@ Input: MAC PDU (bytes)
 | `compute_bf_weights.c` | 目前程式裡沒有資料，可能是嘗試從 (ULCSI) 來估計 (DLCSI)來計算波束賦形的權重 (beam_weights)     | 
 | `modulation_UE.h` | 定義UE在實體層接收端調變/解調變的前端處理的核心函數介面  | 
 | `modulation_eNB.h`  | 定義 基地台在實體層中與調變和波束賦形相關的關鍵函數介面。 | 
-| `nr_modulation.c`                 | UE進行初始同步，找基地台   | 
+| `nr_modulation.c`                 | 用於 調變 (Modulation)、層映射 (Layer Mapping)、DFT (離散傅立葉轉換) 和 預編碼 (Precoding)    | 
 | `ofdm_mod.c`              | 5G NR 系統的 OFDM 調變流程，用於下行通道             | 
-| `slot_fep_nr.c`        | gNB 解碼 PUSCH（LDPC 解碼與 CRC 驗證） | 
+| `slot_fep_nr.c`        | 針對Downlink和Uplink的 OFDM 信號解調 | 
 
