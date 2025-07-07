@@ -118,17 +118,17 @@ Input: MAC PDU (bytes)
 | `nr_ulsch_decoding.c`        | gNB 解碼 PUSCH（LDPC 解碼與 CRC 驗證） | 
 | `nr_ulsch_demodulation.c`    | 頻域通道估計、MMSE 等化與符號提取           | 
 | `nr_prach.c`        | 產生 PRACH 前導碼與接收匹配過濾器 | 
-| `nr_psbch_rx.c`        | PRACH 參數與函式原型定義      | 
-| `nr_psbch_tx.c` | PRACH 共用邏輯與前導分析工具    |
+| `nr_psbch_rx.c`        | UE接收、解碼（Physical Sidelink Broadcast Channel, PSBCH）訊號 | 
+| `nr_psbch_tx.c` | UE發送（Physical Sidelink Broadcast Channel, PSBCH）訊號    |
 | `nr_pbch.c` | MIB 封裝與 PBCH 導頻插入    | 
 | `pss_nr.c`  | 偵測主同步信號 PSS（用於時間同步）  | 
 | `sss_nr.c`  | 偵測次同步信號 SSS並解碼使用 | 
-| `nr_ue_rf_helpers.c` | 產生 PDSCH/PUSCH 用的 DMRS | 
-| `nr_ulsch_coding.c` | 定義 DMRS 參數與 API 原型     | 
-| `nr_ulsch_ue.c`             | 擾碼與解擾碼，符合 TS 38.211                        | 
-| `nr_transport_proto_ue.h`        | 各類 NR 傳輸通道函式介面定義                           | 
-| `nr_transport_ue.h` | 通用傳輸功能定義（如 PRACH 設定）                       | 
+| `nr_ue_rf_helpers.c` | 配置射頻卡（RF Card）的頻率和增益。 | 
+| `nr_ulsch_coding.c` | 實現ULSCH編碼過程，它包含了 CRC 、SEGEMENT、LDPC Encode和rate matching    | 
+| `nr_ulsch_ue.c`             | 處理 UE 在ULSCH的所有相關工作，如編碼及調變 | 
+| `nr_transport_proto_ue.h`        | UE實現PHY中與DLSCH、ULSCH、PUCCH）、PBCH、PRACH以及 PSBCH等相關的處理功能。                           | 
+| `nr_transport_ue.h` | UE端和傳輸層相關的資料結構。用於在PHY 內部以及PHY與更高層 (MAC 層) 之間傳遞資料和配置資訊，HARQ 和 ULSCH/DLSCH相關的資訊。 | 
 | `pucch_nr.c`       | 處理 UCI（如 SR, HARQ-ACK, CSI）                | 
-| `pucch_nr.h`                  | gNB 接收 UE 傳送的 PUCCH（上行控制通道）                | 
-| `srs_modulation_nr.c`                    | gNB 接收 UE 的 SRS（Sounding Reference Signal） |
-| `srs_modulation_nr.h`                    | 位置參考訊號（Positioning Reference Signal）處理     | 
+| `pucch_nr.h`                  |   定義UE端和PUCCH相關的數據結構、函數，用於實現UCI的傳輸。              | 
+| `srs_modulation_nr.c`                    | 實現UE端的 SRS（Sounding Reference Signal，探測參考信號)生成和處理功能 |
+| `srs_modulation_nr.h`                    | 定義UE端和SRS相關的數據結構、函數   | 
