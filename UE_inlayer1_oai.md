@@ -155,4 +155,87 @@ Input: MAC PDU (bytes)
 | `nr_modulation.c`                 | 用於 調變 (Modulation)、層映射 (Layer Mapping)、DFT (離散傅立葉轉換) 和 預編碼 (Precoding)    | 
 | `ofdm_mod.c`              | 5G NR 系統的 OFDM 調變流程，用於下行通道             | 
 | `slot_fep_nr.c`        | 針對Downlink和Uplink的 OFDM 信號解調 | 
+### nr_modulation.c
+- 調變 (nr_modulation)：將編碼後的bitstream映射到 QPSK、16-QAM、64-QAM 或 256-QAM 的複數符號。
+  - 輸入參數:
+    - in：輸入位元流（uint32_t 格式）。
+    - length：位元數量。
+    - mod_order：調變階數（2 表示 QPSK，4 表示 16-QAM，6 表示 64-QAM，8 表示 256-QAM）。
+    - out：輸出複數符號（int16_t 格式，表示實部和虛部的 Q15 固定點數）。
+  - 工作原理:
+    將輸入的位元流分組，查詢定義的調變表(3GPP TS 38.211) ，如 nr_qpsk_mod_table、nr_16qam_mod_table 等，並生成對應的複數符號。
+  
+```
+  #if defined(__SSE2__)
+case 2:
+  nr_mod_table128 = (simde__m128i *)nr_qpsk_byte_mod_table;
+  out128 = (simde__m128i *)out;
+  for (i = 0; i < length / 8; i++)
+    out128[i] = nr_mod_table128[in_bytes[i]];
+  i = i * 8 / 2;
+  nr_mod_table32 = (int32_t *)nr_qpsk_mod_table;
+  while (i < length / 2) {
+    const int idx = ((in_bytes[(i * 2) / 8] >> ((i * 2) & 0x7)) & mask);
+    out32[i] = nr_mod_table32[idx];
+    i++;
+  }
+  return;
+#else
+case 2:
+  nr_mod_table32 = (int32_t *)nr_qpsk_mod_table;
+  for (i = 0; i < length / mod_order; i++) {
+    const int idx = ((in[i * 2 / 32] >> ((i * 2) & 0x1f)) & mask);
+    out32[i] = nr_mod_table32[idx];
+  }
+  return;
+#endif
 
+*QPSK 每 2 位元映射到一個複數符號（例如 {1+j, 1-j, -1+j, -1-j}），並使用SSE2加速，每次迴圈處理 8 位元，生成 4 個複數符號，存入 out
+```
+
+```
+case 6:
+  if (length > (3 * 64))
+    for (i = 0; i < length - 3 * 64; i += 3 * 64) {
+      uint64_t x = *in64++;
+      uint64_t x1 = x & 0xfff;
+      *out64++ = nr_64qam_mod_table[x1];
+      x1 = (x >> 12) & 0xfff;
+      *out64++ = nr_64qam_mod_table[x1];
+      // ... (處理多個 12 位元組)
+    }
+  while (i + 24 <= length) {
+    uint32_t xx = 0;
+    memcpy(&xx, in_bytes + i / 8, 3);
+    uint64_t x1 = xx & 0xfff;
+    *out64++ = nr_64qam_mod_table[x1];
+    x1 = (xx >> 12) & 0xfff;
+    *out64++ = nr_64qam_mod_table[x1];
+    i += 24;
+  }
+  if (i != length) {
+    uint32_t xx = 0;
+    memcpy(&xx, in_bytes + i / 8, 2);
+    uint64_t x1 = xx & 0xfff;
+    *out64++ = nr_64qam_mod_table[x1];
+  }
+  return;
+*以64-QAM為例，每 6 位元映射到一個複數符號，每次處理 64 位元（uint64_t），包含多個 6 位元組，生成多個 64-QAM 符號。
+使用位移運算（>>）和&mask 提取 12 位元（2 個 6 位元符號），查詢 nr_64qam_mod_table，最後每個 64-QAM 符號由兩個 int16_t 表示，存入 out。
+```
+
+- 層映射 (nr_layer_mapping, nr_ue_layer_mapping)：將調變後的符號分配到多個傳輸層 (layers)，支援 MIMO (多輸入多輸出)。
+  - 參數：
+       - nbCodes：編碼單元數（Codewords），通常為 1 或 2，代表獨立的data flow。
+       - encoded_len：每個編碼單元的符號長度。
+       - mod_symbs：調變後的複數符號，格式為 c16_t（16 位元整數表示實部和虛部，Q15 固定點數），為 nbCodes 個編碼單元，每個包含 encoded_len 個符號。
+       - n_layers：傳輸層數（1 到 4），對應 MIMO 配置。
+       - layerSz：每層的符號數量。
+       - n_symbs：總符號數量，表示要處理的資料量。
+       - tx_layers：輸出層資料，格式為 c16_t 陣列，每層儲存 layerSz 個符號
+   - 以4個layer為例，資料位元每4個各自到不同的4層，從這些層最終會映射到不同的天線端口，實現 MIMO 傳輸。而依照裝置有分:
+     - 基站 (gNB)：使用 nr_layer_mapping 處理下行傳輸（如 PDSCH），支援 1 到 4 層的 MIMO，並利用 SIMD 指令（AVX512、AVX2）優化，高資料速率和多天線配置。
+     - UE：使用 nr_ue_layer_mapping 處理上行傳輸（如 PUSCH），支援簡單的層映射和幅度縮放。通常層數較少（1 或 2 層），因為 UE 的天線數量和功率受限。
+- DFT (nr_dft)：對上行資料執行 DFT 轉換（適用於 DFT-s-OFDM，SC-FDMA）。
+- 符號旋轉 (perform_symbol_rotation, init_symbol_rotation, init_timeshift_rotation)：校正頻域或時域的相位偏移。
+- 預編碼 (nr_layer_precoder, nr_layer_precoder_cm, nr_layer_precoder_simd)：應用預編碼矩陣以適應多天線傳輸。
