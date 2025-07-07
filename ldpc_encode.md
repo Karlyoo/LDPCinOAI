@@ -1,7 +1,6 @@
 LDPC Encoder Code in OAI 5GNR
 ===
 
-- [Introduction] (#Introduction)
 
 **Introduction**
 ---
