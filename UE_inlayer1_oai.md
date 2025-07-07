@@ -60,8 +60,7 @@ Input: MAC PDU (bytes)
 │ Output: RX samples           │
 └────────────┬─────────────────┘
              ↓
-
-                    【 Uplink: gNB RX (模擬接收端)】
+【 Downlink: UE RX (模擬接收端)】
 
 ┌──────────────────────────────┐
 │ OFDM FFT + CP 去除 (ofdm_mod.c) │
@@ -70,24 +69,31 @@ Input: MAC PDU (bytes)
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ 通道估計 / 等化(nr_ulsch_demodulation.c)│
-│ Output: equalized symbols   │
+│ 同步 + 識別 (initial_sync.c) │
+│ 識別 SS/PBCH/DMRS             │
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ LLR 計算 (nr_ulsch_llr_computation.c) │
-│ Output: soft bits (LLRs)    │
+│ 通道估計  (nr_dlsch_channel_estimation.c) │
+│ 使用下行 DMRS                 │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ PDCCH 解碼 (控制訊息解碼)     │
+│ 解 DCI → 知道 PDSCH 位置       │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ PDSCH 解碼                   │
+│ Demodulation + LLR 計算     │
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
 │ Rate Dematching              │
-│ Input: LLRs                  │
-│ Output: code blocks          │
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ LDPC 解碼 (nr_ulsch_decoding.c) │
-│ Output: decoded bits         │
+│ LDPC 解碼                    │
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
