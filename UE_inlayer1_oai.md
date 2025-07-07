@@ -1,3 +1,4 @@
+# UE Tx and RX
 ## Architecture
 ```
 【 Uplink: UE TX (模擬傳送端)】
@@ -110,7 +111,7 @@ Input: MAC PDU (bytes)
 | `TOOLS/`                       | 通道估計、向量運算、FFT 工具、phase noise 等          |  |
 | `INIT/`                        | Layer 1 變數初始化                           | 通常在 `phy_init_nr_ue()` 內呼叫                        |
 | `CODING/`                      | LDPC、Polar 編碼與測試                        | 覆蓋 TS 38.212                                      |
-| `defs.h`, `extern.h`, `vars.h` | 全域定義與變數引用                               | 模組間變數共用依賴這三個檔案架構                                  |
+| `defs.h`, `extern.h`, `vars.h` | 全域定義與變數引用                               | 模組間變數共用依賴這三個檔案架構                    |
 
 **openair1/PHY/NR_UE_TRANSPORT/** //NR UE transport channel procedures are here
 | 檔案名稱             | 功能                                 |
@@ -138,3 +139,20 @@ Input: MAC PDU (bytes)
 | `pucch_nr.h`                  |   定義UE端和PUCCH相關的數據結構、函數，用於實現UCI的傳輸。              | 
 | `srs_modulation_nr.c`                    | 實現UE端的 SRS（Sounding Reference Signal，探測參考信號)生成和處理功能 |
 | `srs_modulation_nr.h`                    | 定義UE端和SRS相關的數據結構、函數   | 
+
+## LDPC Encoding
+---
+[Read LDPC Encoder Code in OAI](https://hackmd.io/TOM6je4tQ9mjBCRt6VAyYQ#LDPC-Encoder-Code-in-OAI-5GNR)
+
+## Modulation
+**openair1/PHY/MODULATION** 
+| 檔案名稱             | 功能                                 |
+| ---------------- | ---------------------------------- |
+| `beamforming.c`       | 在eNB端實現波束賦形 (Beamforming) 的功能 |
+| `compute_bf_weights.c` | 目前程式裡沒有資料，可能是嘗試從 (ULCSI) 來估計 (DLCSI)來計算波束賦形的權重 (beam_weights)     | 
+| `modulation_UE.h` | 定義UE在實體層接收端調變/解調變的前端處理的核心函數介面  | 
+| `modulation_eNB.h`  | 定義 基地台在實體層中與調變和波束賦形相關的關鍵函數介面。 | 
+| `nr_modulation.c`                 | UE進行初始同步，找基地台   | 
+| `ofdm_mod.c`              | 5G NR 系統的 OFDM 調變流程，用於下行通道             | 
+| `slot_fep_nr.c`        | gNB 解碼 PUSCH（LDPC 解碼與 CRC 驗證） | 
+
