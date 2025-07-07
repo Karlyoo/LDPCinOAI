@@ -1,12 +1,11 @@
-# catalog
-## PHY/
+
 ```
-                    【 Downlink: gNB TX (模擬傳送端)】
+【 Downlink: gNB TX (模擬傳送端)】
 
 Input: MAC PDU (bytes)
         ↓
 ┌──────────────────────────────┐
-│ CRC 附加 (crc_byte.c)          │
+│ CRC 附加 (crc_byte.c)         │
 │ Output: bits + CRC           │
 └────────────┬─────────────────┘
              ↓
@@ -75,3 +74,4 @@ Input: MAC PDU (bytes)
 │ CRC 檢查 + Segment 合併       │
 │ Output: MAC SDU (bytes)      │
 └──────────────────────────────┘
+```
