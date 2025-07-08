@@ -101,7 +101,7 @@ Input: MAC PDU (bytes)
 | `srs_modulation_nr.c`                    | 實現UE端的 SRS（Sounding Reference Signal，探測參考信號)生成和處理功能 |
 | `srs_modulation_nr.h`                    | 定義UE端和SRS相關的數據結構、函數   | 
 
-## LDPC transport
+## coding
 **openair1/PHY/NR_UE_TRANSPORT/nr_ulsch_coding.c**
 實現 5G NR UE 的上行共享通道 (ULSCH) 編碼流程
 - 資料準備：從輸入參數中提取TB的配置（如大小、調製方式、編碼率等）。
@@ -190,8 +190,8 @@ ue->nrLDPC_coding_interface.nrLDPC_coding_encoder(&slot_parameters);
 LDPC 編碼：生成奇偶校驗位元，增加冗餘。
 速率匹配：根據傳輸資源選擇部分編碼比特，適配通道容量。
 ```
-
-## LDPC Encoding
+## LDPC transport
+### LDPC Encoding
 ---
 [Read LDPC Encoder Code in OAI](https://hackmd.io/TOM6je4tQ9mjBCRt6VAyYQ#LDPC-Encoder-Code-in-OAI-5GNR)
 
