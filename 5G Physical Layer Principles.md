@@ -99,30 +99,29 @@
 | SRS     | Sounding Reference Signal                | 上行   | 測量與 beamforming   |
 
 ```
-🔸 DM-RS（解調參考信號）
--  用於估計解調所需的通道資訊（channel estimation）
--  為 UE 專屬（UE-specific）
--  可搭配 beamforming 使用，僅在必要時傳送（如低延遲應用）
--  支援 slot 前置（front-loaded）配置
--  在低速場景：使用低密度
-   在高速場景：密度提高（增加 OFDM 符號內的 RE 數量）
+- DM-RS（解調參考信號）
+  -  用於估計解調所需的通道資訊（channel estimation）
+  -  為 UE 專屬（UE-specific）
+  -  可搭配 beamforming 使用
+  -  支援 slot 前置（front-loaded）配置
+  -  在低速場景：使用低密度
+   在高速場景：高密度（增加 OFDM 符號內的 RE 數量）
+- PT-RS（相位追蹤參考信號）
+  -  補償傳送過程引起的相位雜訊（phase noise）
+  -  特別適用於高頻傳輸
+  -  疏頻配置於頻域、高密度配置於時域
+  -  PT-RS 的分布依據：震盪器品質、頻率、子載波間距、調變方式等
 
-🔸 PT-RS（相位追蹤參考信號）
--  補償載波震盪器引起的 相位雜訊（phase noise）
--  特別適用於高頻傳輸（如毫米波）
--  疏頻配置於頻域、高密度配置於時域
--  PT-RS 的分布依據：震盪器品質、頻率、子載波間距、調變方式等
+- CSI-RS（通道狀態資訊參考信號）
+   -  用途：
+     - 獲取CSI（計算 CQI、PMI、RI 等）
+     - beam management / RSRP 量測 
+     - 時頻追蹤 / 頻偏補償
 
-🔸 CSI-RS（通道狀態資訊參考信號）
--  用途：
-   CSI 獲取（計算 CQI、PMI、RI 等）
-   beam management / RSRP 量測 
-   時頻追蹤 / 頻偏補償
-
-🔸 SRS（Sounding Reference Signal）
--  上行傳輸，用於：
-   CSI 測量、上行 link adaptation
-   UE 回報用於 precoding 的通道資訊（Reciprocity-based beamforming）
+- SRS（Sounding Reference Signal）
+   -  上行傳輸，用於：
+       - CSI 測量、上行 link adaptation
+       - UE 回報用於 precoding 的通道資訊（Reciprocity-based beamforming），始能順利接至天線
 ```
 
 
