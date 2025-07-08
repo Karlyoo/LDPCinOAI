@@ -202,11 +202,10 @@ LDPC 編碼：生成奇偶校驗位元，增加冗餘。
   若啟用 DFT-s-OFDM，對資料進行 DFT 轉換（nr_dft），並使用低 PAPR DMRS 序列。
 - 資源映射：
   將資料、DMRS 和 PTRS 映射到 PUSCH 資源網格（map_symbols, map_current_symbol）。處理 DMRS 類型（Type 1 或 Type 2）、PTRS 位置和 DC 載波的特殊情況。
-- 預編碼與天線端口映射：
-  應用預編碼矩陣，將層資料映射到天線端口（nr_layer_precoder）。輸出到頻域緩衝區 txdataF。
+- precoding與天線映射：
+  應用precoding matrix，將層資料映射到天線端（nr_layer_precoder）。輸出到頻域緩衝區 txdataF。
 - OFDM 調製：
-  應用頻域旋轉，執行 IFFT 和循環前綴添加，生成時域信號（nr_ue_pusch_common_procedures）。
-輸出到 txdata。
+  應用頻域旋轉，執行 IFFT 和循環前綴添加，生成時域信號（nr_ue_pusch_common_procedures）。輸出到 txdata。
 ## LDPC Encoding
 [Read LDPC Encoder Code in OAI](https://hackmd.io/TOM6je4tQ9mjBCRt6VAyYQ#LDPC-Encoder-Code-in-OAI-5GNR)
 
