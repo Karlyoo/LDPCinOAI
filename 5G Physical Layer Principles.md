@@ -18,7 +18,7 @@
 | -------------- | ------------------------------------ | --------------------- |
 |  下行（Downlink） | QPSK, 16QAM, 64QAM, 256QAM           | 與 LTE 相同              |
 |  上行（Uplink）   | QPSK, 16QAM, 64QAM, 256QAM, π/2-BPSK | π/2-BPSK 提升Low data rates時的效率，<br>適合 mMTC(massive Machine Type Communications，大規模機器型通訊) |
-
+[MODULATION](https://github.com/Karlyoo/LDPCinOAI/blob/main/modulation.md#modulation)
 ### 2.2.2 WAVEFORM
 | 技術      | 下行波形    | 上行波形                        | 備註               |
 | ------- | ------- | --------------------------- | ---------------- |
