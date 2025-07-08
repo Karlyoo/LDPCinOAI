@@ -196,4 +196,4 @@ LDPC 編碼：生成奇偶校驗位元，增加冗餘。
 [Read LDPC Encoder Code in OAI](https://hackmd.io/TOM6je4tQ9mjBCRt6VAyYQ#LDPC-Encoder-Code-in-OAI-5GNR)
 
 ## Modulation
-
+[modulation](https://github.com/Karlyoo/LDPCinOAI/blob/main/modulation.md)
