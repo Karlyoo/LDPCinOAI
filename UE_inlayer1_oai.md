@@ -190,8 +190,7 @@ ue->nrLDPC_coding_interface.nrLDPC_coding_encoder(&slot_parameters);
 LDPC 編碼：生成奇偶校驗位元，增加冗餘。
 速率匹配：根據傳輸資源選擇部分編碼比特，適配通道容量。
 ```
-## LDPC transport
-### LDPC Encoding
+## LDPC Encoding
 ---
 [Read LDPC Encoder Code in OAI](https://hackmd.io/TOM6je4tQ9mjBCRt6VAyYQ#LDPC-Encoder-Code-in-OAI-5GNR)
 
