@@ -8,11 +8,9 @@
 | **SDAP** | Service Data Adaptation Protocol | - mapping between QoS flow ↔ Radio bearers <br>-  IP packet 照QoS映射到Radio bearers |
 | **PDCP** | Packet Data Convergence Protocol | - IP header 壓縮／解壓<br>- 加密與完整性保護<br>- 重排序、重複資料檢測   |
 | **RLC**  | Radio Link Control               | - ARQ 錯誤修正<br>- 資料分段與重組<br>- 按序資料傳遞               |
-| **MAC**  | Medium Access Control            | - HARQ 錯誤修正<br>- 排程與資源分配<br>- 載波聚合下的多工            |
-| **PHY**  | Physical Layer                   | - 編碼／調變處理<br>- 多天線處理（MIMO）<br>- 對應時間頻率資源          |
+| **MAC**  | Medium Access Control            | - HARQ 錯誤修正<br>- 排程與資源分配            |
+| **PHY**  | Physical Layer                   | - 編碼／調變處理<br>- （MIMO）天線發射與接收          |
 
--  User Plane 主要針對 資料傳輸與效能最佳化
--  Control Plane 涉及 連線管理、安全性與控制命令處理
 
 ## 2.2
 ### MODULATION
