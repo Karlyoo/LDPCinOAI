@@ -95,7 +95,7 @@ Rate Matching 適用於每一個 LDPC 編碼後的 code block
   - A ≤ 3824 且 R ≤ 0.67，或
   - R ≤ 0.25，
 否則使用 Base Graph 1（BG1）
-#### 6.2.5 Rate Matching（碼率匹配）
+#### 6.2.5 Rate Matching
 - 輸入：d₀^{(r)}, ..., d_{N_r -1}^{(r)}
   - 每個 CB 獨立進行 Rate Matching（參考 5.4.2）
   - 根據高層參數 rateMatching 決定是否啟用 Limited Buffer Rate Matching（LBRM）
@@ -115,5 +115,13 @@ Transport Block (B bits, 含CRC)
         ↓
 最終上行傳送位元 g₀, ..., g_{G-1}
 ```
+#### 6.2.7 Data and control multiplexing 
+- 在 PUSCH 將（UL-SCH）和控制信息（HARQ-ACK、CSI、CG-UCI）MIX成一個編碼比特序列，並分配到 OFDM 符號和子載波的資源元素上。
+- 考慮了以下因素：
+  - frequency hopping
+  - DMRS 符號的影響（不攜帶 UCI）。
+  - 控制信息的優先級（如 HARQ-ACK 比 CSI 優先）。
+  - 調製階數 Qm 和傳輸層數 NL 的影響。
+    ![image](https://github.com/user-attachments/assets/56a0c142-6baa-4cc4-8c59-1a36fd9fef92)
 
 
