@@ -119,9 +119,17 @@ Transport Block (B bits, 含CRC)
 - 在 PUSCH 將（UL-SCH）和控制信息（HARQ-ACK、CSI、CG-UCI）MIX成一個編碼比特序列，並分配到 OFDM 符號和子載波的資源元素上。
 - 考慮了以下因素：
   - frequency hopping
+    ![image](https://github.com/user-attachments/assets/47360570-d41b-415b-8c1c-ea8a58e22de3)
   - DMRS 符號的影響（不攜帶 UCI）。
   - 控制信息的優先級（如 HARQ-ACK 比 CSI 優先）。
+    ![image](https://github.com/user-attachments/assets/1bc23d8e-7e2c-460c-a125-1a99716e969c)
   - 調製階數 Qm 和傳輸層數 NL 的影響。
     ![image](https://github.com/user-attachments/assets/56a0c142-6baa-4cc4-8c59-1a36fd9fef92)
-
-
+- 分成6個STEP:
+  - Step 1: 初始化資源集合與預留 HARQ-ACK 資源
+  - Step 2：優先處理 HARQ-ACK（或與 CG-UCI 聯合編碼），分配 UCI 資源。
+  - Step 2A：處理單獨的 CG-UCI，分配 UCI 資源。
+  - Step 3：依次處理 CSI Part 1 和 Part 2，分配剩餘 UCI 資源。
+  - Step 4：將 UL-SCH 數據映射到剩餘的 UL-SCH 資源。
+  - Step 5：處理少量 HARQ-ACK（≤ 2 比特），使用預留資源。
+  - Step 6：生成最終的序列，完成所有位元的映射。
