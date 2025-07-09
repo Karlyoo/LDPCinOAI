@@ -102,7 +102,7 @@ Rate Matching 適用於每一個 LDPC 編碼後的 code block
   - rateMatching = limitedBufferRM ⇒ I_LBRM = 1
   - 否則 I_LBRM = 0
 - 輸出：f₀^{(r)}, ..., f_{E_r -1}^{(r)}（每個 CB 經過匹配後為 E_r 個位元）
-
+```
 Transport Block (B bits, 含CRC)
         ↓
 [6.2.3] Code Block 分段 + CB CRC
@@ -114,7 +114,6 @@ Transport Block (B bits, 含CRC)
 [6.2.6] CB 合併（Concatenation）
         ↓
 最終上行傳送位元 g₀, ..., g_{G-1}
-
-
+```
 
 
