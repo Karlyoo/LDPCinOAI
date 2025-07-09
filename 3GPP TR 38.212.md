@@ -86,4 +86,35 @@ Rate Matching 適用於每一個 LDPC 編碼後的 code block
 - 2. Bit Interleaving
   - 將 E 個選出的 bits e[0] ~ e[E-1] 做 interleaving，得到 f[0] ~ f[E-1]
   - 根據 modulation order Qm（例如 QPSK=2, 16QAM=4, 64QAM=6, 256QAM=8）進行順序打亂
+## CH6 Uplink transport channels and control information
+### 6.2 Uplink shared channel 
+#### 6.2.2 LDPC Base Graph 選擇
+- 依據 payload 大小 A（含 CRC） 與 code rate R（由 MCS 決定）選擇 Base Graph：
+  使用 Base Graph 2（BG2） 的條件：
+  - A ≤ 292，或
+  - A ≤ 3824 且 R ≤ 0.67，或
+  - R ≤ 0.25，
+否則使用 Base Graph 1（BG1）
+#### 6.2.5 Rate Matching（碼率匹配）
+- 輸入：d₀^{(r)}, ..., d_{N_r -1}^{(r)}
+  - 每個 CB 獨立進行 Rate Matching（參考 5.4.2）
+  - 根據高層參數 rateMatching 決定是否啟用 Limited Buffer Rate Matching（LBRM）
+  - rateMatching = limitedBufferRM ⇒ I_LBRM = 1
+  - 否則 I_LBRM = 0
+- 輸出：f₀^{(r)}, ..., f_{E_r -1}^{(r)}（每個 CB 經過匹配後為 E_r 個位元）
+
+Transport Block (B bits, 含CRC)
+        ↓
+[6.2.3] Code Block 分段 + CB CRC
+        ↓
+[6.2.4] LDPC 編碼（每個 CB）
+        ↓
+[6.2.5] Rate Matching（每個 CB）
+        ↓
+[6.2.6] CB 合併（Concatenation）
+        ↓
+最終上行傳送位元 g₀, ..., g_{G-1}
+
+
+
 
