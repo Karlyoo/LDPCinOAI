@@ -28,21 +28,7 @@ LDPC File list
 | `ldpc_encode_parity_check.c`   | Uses mod-2 operations, bit shifts, and cyclic shifts to construct the final codeword. |
 | `nrLDPC_coding_segment_encoder.c`       | 經過分段處理的程式會送進此程式，執行LDPC encoding、Rate matching、Interleaving
 
-```
-nrLDPC_encoder.c
-  ↓
-nrLDPC_coding_segment_encoder.c
-  → nrLDPC_coding_segment()
-     - adding CRC
-     - choose BG, Zc
-     - call ldpc_encoder_optim()
-      ↓
-    ldpc_encoder_optim.c
-      → encode_parity_check_part_optim()
-        - initialize c[]
-        - unfold data
-        - call ldpcXXX_byte(c, d)（eg. Zc=384 → ldpc384_byte）
-```
+
         
 ldpc_encoder.c
 ---
