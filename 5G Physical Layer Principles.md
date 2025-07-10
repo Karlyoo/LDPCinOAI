@@ -123,211 +123,210 @@
        - CSI 測量、上行 link adaptation
        - UE 回報用於 precoding 的通道資訊（Reciprocity-based beamforming），始能順利接至天線
 ```
-# CH8
-
-8.1.1 二元輸入加性高斯白噪聲通道（The Binary AWGN Channel）
-通道模型
-
-定義：bi-AWGN通道是一個無記憶離散時間通道，數學模型為：[y_k = \sqrt{\rho} x_k + w_k, \quad k = 1, \dots, n]其中：
-
-( y_k )：接收信號。
-( x_k )：發送信號，屬於二元字母表 ({ -1, 1 })（對應BPSK調製）。
-( w_k )：加性高斯白噪聲，獨立同分佈（i.i.d.），均值為0，方差為1的正態分佈隨機變量。
-( \rho )：信噪比（SNR），表示信號功率與噪聲功率的比值。
-( n )：通道使用的次數，等於傳輸一個信息包的區塊長度（blocklength）。
-
-
-特點：
-
-無記憶性：每次通道使用獨立，無時間相關性。
-二元輸入：限制輸入符號為 ({ -1, 1 })，對應二元相位移鍵控（BPSK）。
-該模型簡化了分析，但適用於5G中許多實際場景的理論研究。
-
-
-
-
-8.1.2 bi-AWGN通道的編碼方案（Coding Schemes for the Binary-AWGN Channels）
-編碼方案的定義
-
-編碼方案結構：一個 ((n, M, \epsilon)) 的二元編碼方案包括：
-
-編碼器：
-映射函數：( f: {1, 2, \dots, M} \to \mathbb{F}_2^n )。
-將信息消息 ( j \in {1, 2, \dots, M} )（共 ( M = 2^k ) 個消息，( k ) 為信息比特數）映射到碼字集合 ({ c_1, \dots, c_M })，其中 ( c_m \in \mathbb{F}_2^n )。
-碼字集合稱為通道碼或碼本（codebook）。
-每個二元碼字 ( c_k ) 通過映射 ( x_k = 2c_k - 1 ) 轉換為BPSK符號 ({ -1, 1 })。
-
-
-解碼器：
-映射函數：( g: \mathbb{R}^n \to {1, 2, \dots, M} )。
-將接收序列 ( y \in \mathbb{R}^n ) 解碼為消息 ( \hat{j} )，或宣佈錯誤。
-滿足平均包錯誤概率約束：[P(\hat{j} \neq j) \leq \epsilon]
-
-
-碼率（Rate）：
-定義為：( R = \frac{\log_2(M)}{n} = \frac{k}{n} )（單位：比特/通道使用）。
-表示每個通道使用傳輸的信息比特數。
-
-
-
-
-術語澄清：
-
-碼（Code）：僅指碼字集合。
-編碼方案（Coding Scheme）：包括碼字、編碼器和解碼器。
-不同解碼算法（例如最大似然解碼或信念傳播解碼）可能導致不同複雜度的編碼方案，即使使用相同的碼字集合。
-
-
-
-實現挑戰
-
-編碼方案需要平衡以下因素：
-碼率 ( R )：希望盡可能高以提高數據傳輸效率。
-區塊長度 ( n )：受延遲約束影響，特別是在5G URLLC場景中，( n ) 可能較小。
-錯誤概率 ( \epsilon )：需要足夠低以確保可靠性。
-
-
-在有限區塊長度下，實現高碼率和低錯誤概率是一大挑戰。
-
-
-8.1.3 性能指標（Performance Metrics）
-最大碼率 ( R^*(n, \epsilon) )
-
-定義：[R^*(n, \epsilon) = \sup \left{ \frac{\log_2(M)}{n} : \exists (n, M, \epsilon) \text{ coding scheme} \right}]
-
-表示在給定區塊長度 ( n ) 和錯誤概率 ( \epsilon ) 的約束下，可實現的最大碼率。
-描述了碼率、區塊長度和錯誤概率之間的基礎權衡。
-
-
-Shannon的理論貢獻：
-
-在1948年，Shannon通過隨機編碼論證，證明當 ( n \to \infty ) 時，最大碼率 ( R^*(n, \epsilon) ) 趨向於通道容量 ( C )。
-通道容量 ( C ) 是通道的固有屬性，對於bi-AWGN通道，容量公式為：[C = \frac{1}{\sqrt{2\pi}} \int e^{-\frac{z^2}{2}} \left[ 1 - \log_2 \left( 1 + e^{-2\rho + 2z\sqrt{\rho}} \right) \right] dz]
-結論：
-若 ( R < C )，存在一系列編碼方案，使得錯誤概率隨 ( n \to \infty ) 趨於0。
-若 ( R > C )，對於大多數實際通道（包括bi-AWGN），錯誤概率趨向於1。
-
-
-
-
-挑戰：
-
-Shannon的證明基於隨機編碼，屬於非構造性方法，無法直接提供實際的編碼方案。
-接近通道容量的實際編碼方案花費了約50年才實現（如LDPC碼、Turbo碼）。
-
-
-
-非漸進分析（Nonasymptotic Analysis）
-
-背景：
-
-通道容量 ( C ) 是漸進性能指標，適用於 ( n \to \infty )。
-在5G場景（如URLLC）中，延遲約束導致 ( n ) 較小，通道容量無法準確描述性能。
-因此，需要研究有限區塊長度下的 ( R^*(n, \epsilon) )。
-
-
-方法：
-
-通過有限區塊長度信息論工具（如文獻[29]），可計算 ( R^*(n, \epsilon) ) 的上下界：
-上界（Converse Bound）：基於最小最大對話（minimax converse，文獻[29, Thm. 27]）。
-下界（Achievability Bound）：基於隨機編碼聯合界（Random-Coding Union, RCU，文獻[29, Thm. 16]）的放寬版本（RCUs，文獻[23, Thm. 1]）。
-
-
-這些界限在實際參數範圍內（例如 ( \epsilon = 10^{-4}, \rho = 0 , \text{dB} )）非常緊密。
-
-
-圖表分析（圖8.1）：
-
-圖8.1A：顯示 ( R^*(n, \epsilon) ) 隨區塊長度 ( n ) 的變化，參數為 ( \epsilon = 10^{-4}, \rho = 0 , \text{dB} )。
-
-上界和下界顯示最大碼率隨 ( n ) 增加逐漸接近通道容量 ( C )。
-正常近似（Normal Approximation）：[R^*(n, \epsilon) \approx C - \sqrt{\frac{V}{n}} Q^{-1}(\epsilon) + \frac{1}{2n} \log_2 n]其中：
-( V )：通道分散（Channel Dispersion），表示通道隨機性的度量：[V = \frac{1}{\sqrt{2\pi}} \int e^{-\frac{z^2}{2}} \left[ 1 - \log_2 \left( 1 + e^{-2\rho + 2z\sqrt{\rho}} \right) - C \right]^2 dz]
-( Q^{-1}(\cdot) )：高斯Q函數的逆函數。
-正常近似在高SNR或中等錯誤概率下準確，但在低SNR和低錯誤概率下可能失效（需使用基於鞍點方法的近似，文獻[23]）。
-
-
-
-
-圖8.1B：顯示最小錯誤概率 ( \epsilon^*(n, R) ) 隨比特能量與噪聲功率譜密度比 ( \frac{E_b}{N_0} ) 的變化，參數為 ( R = 0.5, n = 512 )。
-
-( \epsilon^(n, R) ) 定義為：[\epsilon^(n, R) = \min \left{ \epsilon : \exists (n, \lfloor 2^{nR} \rfloor, \epsilon) \text{ coding scheme} \right}]
-( \frac{E_b}{N_0} ) 與SNR的關係：[\frac{E_b}{N_0} = \frac{\rho}{2R}]
-正常近似：[\epsilon^*(n, R) \approx Q \left( \frac{C - R + (2n)^{-1} \log_2 n}{\sqrt{V/n}} \right)]
-圖表顯示上下界隨 ( \frac{E_b}{N_0} ) 變化的趨勢，表明錯誤概率隨著能量增加而降低。
-
-
-
-
-
-歸一化碼率（Normalized Rate）
-
-定義：[R_{\text{norm}} = \frac{R}{R^*(n, \epsilon)}]
-
-其中，( R ) 為實際編碼方案的碼率，( R^*(n, \epsilon) ) 為理論最大碼率（可通過正常近似計算）。
-( R_{\text{norm}} ) 允許比較不同區塊長度和碼率的編碼方案性能，值越大表示編碼方案越接近理論極限。
-
-
-計算方法：
-
-固定碼的區塊長度 ( n ) 和碼率 ( R )，計算實現目標錯誤概率 ( \epsilon ) 所需的最小SNR ( \rho_{\min}(\epsilon) )。
-使用 ( \rho_{\min}(\epsilon) ) 計算 ( R^*(n, \epsilon) )（如通過正常近似公式8.7）。
-計算 ( R_{\text{norm}} )，評估編碼方案的相對性能。
-
-
-圖表分析（圖8.2）：
-
-圖8.2展示了不同編碼方案在bi-AWGN通道上的 ( R_{\text{norm}} )，參數為 ( \epsilon = 10^{-4} )。
-根據區塊長度 ( n ) 分為三個區域：
-大區塊長度（( n \geq 1000 )）：
-最佳編碼方案：基於信念傳播解碼的多邊型LDPC碼和Turbo碼。
-這些碼在長區塊下接近通道容量，性能優異。
-
-
-中等區塊長度（( 400 \leq n \leq 1000 )）：
-最佳編碼方案：極化碼（Polar Codes）結合大列表大小的連續消除解碼（Successive-Cancellation Decoding）及外層循環冗餘校驗（CRC）。
-提供良好的性能-複雜度權衡。
-
-
-短區塊長度（( n \leq 400 )）：
-最佳編碼方案：短代數碼或基於尾咬卷積碼的線性區塊碼，使用近最大似然解碼（如有序統計解碼，OSD）。
-高階有限域上的LDPC碼也表現出潛力。
-
-
-
-
-這些見解已被3GPP標準化活動採用：
-LDPC碼用於新無線（NR）eMBB數據通道。
-極化碼用於NR eMBB控制通道。
-
-
-
-
-
-
-總結與實際意義
-
-理論意義：
-
-本節通過bi-AWGN通道的分析，闡述了FEC的基礎限制，特別是在有限區塊長度下的性能權衡。
-Shannon的通道容量理論提供了漸進性能的基準，但對於5G低延遲場景，需依賴非漸進分析工具。
-正常近似和上下界提供了實際可計算的性能指標，幫助評估編碼方案的效率。
-
-
-實際應用：
-
-非漸進分析為5G編碼方案的設計和選擇提供了具體指導。
-不同區塊長度下的最佳編碼方案選擇（LDPC、極化碼、短代數碼等）直接影響5G系統的性能。
-這些理論工具可用於優化多天線衰落通道、先導輔助傳輸等場景（詳見第8.3節）。
-
-
-未來研究方向：
-
-改進非漸進界的計算效率，特別是在低SNR和低錯誤概率場景下。
-開發更高效的短區塊長度編碼方案，以滿足5G URLLC的需求。
-探索基於機器學習的編碼和解碼算法，以進一步接近理論極限。
-
-
-
-
-
+# Chapter 8
+## 8.1 Fundamental Limits of FEC
+### 8.1.1 Binary AWGN Channel
+- binary-input AWGN (bi-AWGN) channel：
+  - yk = √ρ * xk + wk, k = 1, ..., n
+  - xk ∈ {−1, 1} 是 BPSK 調變符號（來自bit ck）
+  - wk ∼ N(0,1) 為獨立同分佈的高斯雜訊
+  - ρ : SNR（Signal-to-Noise Ratio）
+  - n 是一個packet使用的總 channel uses（即 blocklength）
+### 8.1.2 Coding Schemes for bi-AWGN Channel
+- 傳輸資料透過編碼器轉換為碼字，並以 BPSK 映射：
+  - xk = 2 * ck − 1
+  - Def：一個 (n, M, ε) 的 coding scheme 包括：
+  - 
+|Encoder：| Decoder：|
+|---------|----------|
+|f : {1, ..., M} → F2^n<br>將訊息編碼為 binary codeword|g : R^n → {1, ..., M}<br>根據接收到的 y ∈ R^n 預測訊息、回報錯誤|
+
+   - 錯誤率限制：平均錯誤率 ≤ ε
+- 傳輸速率：R = log2(M) / n = k / n
+
+註：a code 是bits的集合；a coding scheme 則包含編碼器和解碼器
+
+### 8.1.3 Performance Metrics
+- 最大可達速率 R(n, ε)： R*(n, ε) = sup { log2(M)/n : 存在 (n, M, ε) coding scheme }
+- 反映 blocklength 與錯誤率 ε 的 trade-off
+- Shannon 理論：
+   - 若 R < C，則隨著 n → ∞，可以做到錯誤率趨近於 0
+   - 若 R > C，則錯誤率趨近於 1
+   - 對 bi-AWGN channel，容量 C 由以下積分公式表示：
+```
+C = ∫ (1 / √(2π)) * e^(−z²/2) * [1 − log2(1 + e^(−2ρ + 2z√ρ))] dz
+實際上，Shannon 的 capacity 是 n → ∞ 的極限值，對 5G 等低延遲應用來說並不適用
+```
+#### Finite Blocklength Theory:
+- 使用 finite-blocklength 工具，可對 R*(n, ε) 給出 上下界。
+- 對 bi-AWGN channel 而言，存在：
+  - Converse bound：上界 on R*(n, ε)、下界 on ε*(n, R)
+  - Achievability bound（RCUs）：下界 on R*(n, ε)、上界 on ε*(n, R)
+- Normal approximation（正態近似）：
+  ```
+  - R*(n, ε) ≈ C − √(V/n) * Q⁻¹(ε) + (1/(2n)) * log2(n)
+  - Q⁻¹ 是 Gaussian Q 函數的反函數，V 為 channel dispersion，表示為：
+  - V = ∫ (1 / √(2π)) * e^(−z²/2) * [1 − log2(1 + e^(−2ρ + 2z√ρ)) − C]² dz
+  ```
+#### Minimum Packet Error Probability
+- 對固定的 n, R，定義：
+  - ε*(n, R) = min { ε : 存在 (n, 2^(nR), ε) coding scheme }
+- 對應的近似式為：
+  - ε*(n, R) ≈ Q((C − R + (1/(2n)) * log2(n)) / √(V/n))
+  - 可進一步將能量效率表示為：
+    - Eb/N0 = ρ / (2R)
+#### Normalized Rate Rnorm
+- 定義 normalized rate 以衡量實際與理論極限之間的差距：
+  - Rnorm = R / R*(n, ε)
+  - Rnorm 越接近 1，表示編碼 scheme 越接近最佳表現
+
+### 8.2.2  Definitions
+#### 線性區塊碼 Linear Block Code
+- 一個 (n, k) 線性區塊碼是 F2^n 中的一個 k 維度子空間。
+- 共有 2^k 個碼字，且每個碼字可以寫成 k 個線性無關碼字的線性組合。
+#### 產生矩陣 Generator Matrix G
+- 記碼字的基底為 {g1, g2, ..., gk}，則產生矩陣為：
+- G = [ g1
+      g2
+      ...
+      gk ]
+- 編碼公式：c = b * G
+  - b: 為 k-bit 的資料（行向量）
+  - c: 編碼後的碼字（長度為 n）
+
+#### 同質空間與同質碼 Parity Check Matrix H
+- C 的正交補空間（dual space）定義為：
+  - C⊥ = { ĉ ∈ F2^n : ĉ · cᵀ = 0, ∀ c ∈ C }
+  - 選擇 {h1, h2, ..., h_{n−k}} 為 C⊥ 的一組基底，則 同質矩陣 (H) 為：
+  - H = [ h1
+      h2
+      ...
+      h_{n−k} ]
+
+c * Hᵀ = 0 ⇨ 表示 c ∈ C
+註：G 和 H 可以唯一地描述一個線性碼，換言之，兩者一定要正交，表示資料無誤。
+
+#### 最佳解碼：最大似然解碼 (ML(maximum-likelihood) decoding)
+- ML原理:在觀察到接收端的訊號 y 之後，找出最有可能被傳送的原始碼字 x(m)
+- 假設所有訊息等機率選取，則 ML 解碼規則 為：
+  - j = arg max_{m ∈ {1, ..., 2^k}} p(y | x(m))
+  - 對 bi-AWGN channel，有：
+    - p(y | x) = (1 / √(2π)) * exp(−‖y − √ρ x‖² / 2)
+  - ML 解碼可寫為：
+    - j = arg min_{m ∈ {1, ..., 2^k}} ‖y − √ρ x(m)‖²
+    - ML 解碼器會選擇在 Euclidean 空間中與接收到的 y 最近的碼字 x(m)
+    - x(m) 是可能的 BPSK 編碼碼字（例如：[-1, +1, -1, ...]）
+    - y 是傳送 x(m) 並加上高斯雜訊後的實數向量
+    - √ρ 是 SNR 對碼字振幅的影響
+
+#### 錯誤率與距離有關
+- 若傳送的是 x(1)，錯選 x(m≠1) 的機率為：
+  - P(j = m | j = 1) = Q(√ρ * ‖x(m) − x(1)‖ / 2)
+  - 若 Kd 為平均上與碼字距離為 d 的碼字數量，則由聯集界 (union bound) 有：
+    - ε ≤ ∑_d Kd * Q(√ρ * d / 2)
+  - 上界通常由最小距離支配：
+    - ε ≈ K_{dmin} * Q(√ρ * dmin / 2)
+    - dmin：最小歐幾里得距離，等於 非零碼字中最小 Hamming weight 的兩倍
+
+### 8.2.3  LDPC Codes
+#### Definition
+- LDPC (Low-Density Parity-Check) codes 是一種線性區塊碼，其特徵為：
+  - Parity Check Matrix (PCM) 是一個稀疏矩陣（大多為 0）
+  - 最早由 Gallager 提出（1960s），1990s 再被重新發現與推廣
+  - 接近 Shannon capacity，且已被廣泛應用於多個標準（如 Wi-Fi、WiMAX、DVB-S2）
+- Tanner Graph 表示法
+  -LDPC 可使用 Tanner Graph（雙部圖）表示
+  - 節點分為兩類：
+    - Variable nodes (VNs)：每個對應一個碼位，共 n 個
+    - Check nodes (CNs)：每個對應一個同質條件，共 m 行（m ≥ n − k）
+  - PCM 中若 H[i,j] = 1，則 Tanner Graph 中 CN_i 與 VN_j 連接
+#### 規則與非規則 LDPC
+- Regular LDPC：所有 VNs 與 CNs 具有相同度數（連線數）
+- Irregular LDPC：VNs 或 CNs 的度數不同 ➜ 通常效能更好
+- 用 degree distributions 表示（每種度數的邊數比例）
+#### 解碼原理：Belief Propagation (BP)
+- 解碼流程為迭代式傳遞 log-likelihood ratios (LLRs)：
+- VN phase：每個 VN 接收來自通道與 CNs 的 LLR，並產生輸出給鄰近 CNs
+- CN phase：每個 CN 收到 VNs 的 LLR，計算出更新後的值，傳回給 VNs
+- 重複直到： 成功找到滿足 Hcᵀ = 0 的碼字，或達到最大迭代次數
+
+#### LDPC 編碼設計方法
+
+|隨機法（pseudorandom with cycle avoidance）：|結構性設計法：Protograph-based LDPC：|
+|---|----|
+|可達到好效能<br>但結構性不足 ➜ 編碼與實作複雜度高，不適用於實務|先設計一個小的 base matrix (Hb)，然後進行 lifting：<br>每個元素替換為 Q × Q 的子矩陣（如循環置換矩陣）<br>可生成 quasi-cyclic LDPC code<br>有利於簡化編碼與實作，效能損失極小|
+(OAI實作為QC-LDPC)
+####  The LDPC-Code Solution Chosen for 5G NR
+- 使用 quasi-cyclic LDPC codes
+- 為支援 HARQ，有 rate-compatible 結構
+  -定義了 兩組 base matrices 以支援不同訊息長度與速率需求
+  - Base Matrix 設計（如圖 Fig. 8.4）
+    
+  |Base Matrix 編號	|用途	|尺寸	|系統碼元數	|支援速率	|最大 k 值|
+  |-----------------|-----|-----|-----------|---------|---------|
+  |Base Matrix #1|	長封包、高速率	|46 × 68|	22|	1/3 ~ 8/9|	8448 bits|
+  |Base Matrix #2|	短封包、低速率|	42 × 52|	10	|1/5 ~ 2/3|	3840 bits|
+  
+- 特點：
+  - 前兩欄（灰色）為 punctured bits：實際不傳送，但提升效能（改善閾值）
+  - 核心區（藍色）：dual-diagonal 結構，有助於快速編碼
+  - 低速率傳輸：可依需求擴展更多 parity bits（使用粉紅色區塊）
+  - 外部行設計為近似正交 ➜ 提高解碼並行性
+![image](https://github.com/user-attachments/assets/e4bdf8ca-9edb-4077-8a65-c15886d4f271)
+
+**規範可參照 3GPP TR 38.212 LDPC CODING**
+
+## 8.3 CODING SCHEMES FOR FADING CHANNELS
+### 8.3.1 The SISO Case
+- 使用 OFDM 傳輸，每個碼字跨越多個 Resource Blocks (RBs)：
+  - 每個 RB 位於不同頻率，但同一時間送出
+  - 每個 RB 含有 d 個 OFDM symbols，u 個子載波
+  - 總符號數：n_c = d × u
+#### Fading Channel 模型
+- Block-memoryless fading 假設：
+  - 每個 coherence bandwidth 內，通道保持不變
+  - 不同 RB 視為互相獨立的 fading 分支
+  - 定義參數：
+     - B：整體頻寬
+     - B_c：coherence bandwidth
+     - L_max = ⌊B / B_c⌋：最多可利用的頻率多樣性數 L_max
+     - L ≤ L_max：實際使用的 diversity branches
+  - 通道輸入輸出關係（每個 RB）：
+     - y_l = √ρ × h_l × x_l + w_l,   l = 1,...,L
+#### Pilot-assisted 傳輸與解碼
+- 每個 RB 有 n_p 個 pilot symbols（已知符號），其餘為資料符號
+- x_l = [x_l^(p), x_l^(d)]
+- 假設調變為QPSK, 單位能量，接收端使用 ML channel estimation：
+  - ĥ_l = y_l^(p) × (x_l^(p))ᴴ / (n_p × √ρ)
+  - 解碼器採用 mismatch decoding（假設 ĥ_l 為真通道）：
+  -ĵ = argmin_{m ∈ {1, ..., 2^k}} ∑_{l=1}^{L} ‖y_l^(d) − ĥ_l × x_l^(d)(m)‖²
+![image](https://github.com/user-attachments/assets/2852764f-9304-4c3e-af62-9779b2618e5c)
+- 圖 8.11：與理論界限比較，設定：L = 7、k = 81、n = 186、np = 2 或 4
+- 使用 (324, 81) tail-biting convolutional code（記憶長 m = 14）
+- 經過：
+   - Pseudorandom interleaver
+   - Puncturing：去掉一些符號，空出 pilot 空間
+   - QPSK 調變，解碼採用 OSD (Ordered Statistics Decoding), t = 3
+- 結果：
+   - 與理論極限差距約為 1 dB
+**np 設太小或太大都會損失效能 ➜ 需最適化** 
+
+![image](https://github.com/user-attachments/assets/24793a26-8d33-4e5e-b540-51c392305b28)
+- 圖 8.12：設定：k = 30, n = 288, Rayleigh fading
+- 比較：(A) L = 4、(B) L = 12
+**顯示更多頻率多樣性能明顯降低封包錯誤率（PER）**
+
+### 8.3.2 The MIMO Case
+- 使用多天線架構（MIMO） 提供空間多樣性 (spatial diversity)
+- 發射端若無通道資訊，需透過空間-頻率碼 (space-frequency codes) 尋找資訊
+- 在圖 8.12 中，與SISO比較:
+  
+| 模式                 | (A) L = 4                     | (B) L = 12              |
+| ------------------ | ----------------------------- | ----------------------- |
+| **SISO**           | 最差表現                          | 最差表現                    |
+| **1 × 2 SIMO**     | 明顯改善                          | 表現仍受限                   |
+| **2 × 2 Alamouti** | 表現與 1×2 接近                    | 受通道估計誤差影響，甚至 **劣於 1×2** |
+| **1 × 4 SIMO**     | **唯一達成 PER < 10⁻⁵**（URLLC 標準） | 同樣是最佳                   |
+
+- Alamouti 雖然理論上提供等同 1x4 的多樣性，但對通道估計誤差更敏感：
+  - 特別是在 n_c 小時（如 B 圖） ➜ Pilot overhead 高，估計品質差
