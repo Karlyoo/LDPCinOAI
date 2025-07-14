@@ -4,7 +4,8 @@ Input: MAC PDU (bytes)
         ↓
 ┌──────────────────────────────┐
 │ CRC 附加 (crc_byte.c)         │    
-│ Output: bits + CRC           │    5.1 CRC calculation
+│ Output: bits + CRC      
+│  **5.1 CRC calculation**
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
@@ -13,18 +14,21 @@ Input: MAC PDU (bytes)
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ Segmentation (nr_segmentation.c) │  5.2 Code block segmentation and code block CRC attachment
-│ Output: LDPC segments (bits) │
+│ Segmentation (nr_segmentation.c) │  
+│ Output: LDPC segments (bits)
+│**5.2 Code block segmentation and code block CRC attachment**
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ LDPC 編碼 (nr_dlsch_coding.c + CODING/) │   5.2.2 Low density parity check coding
-│ Output: encoded bits         │
+│ LDPC 編碼 (nr_dlsch_coding.c + CODING/) │   
+│ Output: encoded bits 
+│**5.2.2 Low density parity check coding**
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ Rate Matching + Interleaving │   6.2.5 Rate Matching
-│ Output: RM bits              │
+│ Rate Matching + Interleaving │   
+│ Output: RM bits
+│**6.2.5 Rate Matching**
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
@@ -44,7 +48,8 @@ Input: MAC PDU (bytes)
              ↓
 ┌──────────────────────────────┐
 │ Insert DMRS (UE uplink reference signal) │
-│ Output: complex symbols (IQ) │
+│ Output: complex symbols (IQ)
+│**6.2.7 Data and control multiplexing**
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
