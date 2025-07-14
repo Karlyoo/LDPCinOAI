@@ -133,3 +133,5 @@ Transport Block (B bits, 含CRC)
   - Step 4：將 UL-SCH 數據映射到剩餘的 UL-SCH 資源。
   - Step 5：處理少量 HARQ-ACK（≤ 2 比特），使用預留資源。
   - Step 6：生成最終的序列，完成所有位元的映射。
+ 
+    
