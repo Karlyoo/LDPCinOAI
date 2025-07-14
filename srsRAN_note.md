@@ -130,9 +130,11 @@ mkdir build \\ Creates a new folder for building the project.
 cd build \\ Enters the build folder.
 cmake ..  \\Runs CMake to generate Makefiles based on your system and dependencies. It reads the CMakeLists.txt file from the parent directory (..) to configure the build.
 ```
+
 ```
 cmake .. -DENABLE_ZEROMQ=ON -DENABLE_PCAP=ON
 ```
+
 | Flag                 | Function                                                                   |
 | -------------------- | -------------------------------------------------------------------------- |
 | `-DENABLE_ZEROMQ=ON` | Enables ZeroMQ support (for inter-process messaging, remote control, etc.) |
@@ -143,6 +145,7 @@ make -j$(nproc)
 \\ Builds (compiles) the project using all available CPU cores.
 $(nproc) gets the number of available CPU threads, so the build is done faster.
 ```
+
 ```
 sudo make install
 \\ Installs the compiled binaries and libraries to your system (e.g., /usr/local/bin), allowing you to run srsran_ue, srsran_gnb, etc., directly from the terminal.
