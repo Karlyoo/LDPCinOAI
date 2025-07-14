@@ -90,3 +90,61 @@ Input: MAC PDU (bytes)
 └────────────────────────────────────────┘
 ```
 *** Tx端流程跟OAI基本差不多
+
+## Building up srsRAN environment
+According to online sources, starting from version 22.x, srsRAN has shifted to primarily using a CLI (command-line interface) for managing the UE and gNB, moving away from a GUI-based approach.
+
+| FUNCTION           | TOOLS                                          |
+| ------------ | ------------------------------------------- |
+|Simulate UE/gNB    | `srsRAN` CLI tools（ex: `srsue`, `srsenb`）       |
+| check log       | `terminal`（ `--log_all` 或 `--log_level`）   |
+| Packet analysis         | `Wireshark`（with tun/tap or pcap ）          |
+| System monitoring        | `Prometheus + Grafana`、`htop`、`iftop` 等 |
+
+```
+sudo apt update  \\Updates your local APT package index so your system knows the latest available versions of packages.
+sudo apt install -y build-essential cmake git \
+    libfftw3-dev libmbedtls-dev libboost-program-options-dev \
+    libconfig++-dev libsctp-dev libuhd-dev uhd-host \
+    libpcsclite-dev libusb-1.0-0-dev
+```
+| Package                        | Purpose                                                        |
+| ------------------------------ | -------------------------------------------------------------- |
+| `build-essential`              | Basic compilation tools (GCC, G++, make, etc.)                 |
+| `cmake`                        | The build system used by srsRAN                                |
+| `git`                          | To clone the srsRAN source code from GitHub                    |
+| `libfftw3-dev`                 | Fast Fourier Transform library for signal processing           |
+| `libmbedtls-dev`               | Lightweight TLS/SSL library (used for security and encryption) |
+| `libboost-program-options-dev` | Used to parse command-line options                             |
+| `libconfig++-dev`              | Parses configuration files (used in srsRAN config)             |
+| `libsctp-dev`                  | Supports SCTP protocol (used in NGAP signaling)                |
+| `libuhd-dev`, `uhd-host`       | Drivers and API for USRP SDR devices                           |
+| `libpcsclite-dev`              | Smart card support, useful for SIM emulation                   |
+| `libusb-1.0-0-dev`             | Handles communication with USB-based SDRs (like bladeRF)       |
+
+```
+git clone https://github.com/srsran/srsRAN_Project.git \\ Clones the latest srsRAN source code repository from GitHub to your local system.
+
+cd srsRAN_Project \\ Enters the source code directory.
+mkdir build \\ Creates a new folder for building the project.
+cd build \\ Enters the build folder.
+cmake ..  \\Runs CMake to generate Makefiles based on your system and dependencies. It reads the CMakeLists.txt file from the parent directory (..) to configure the build.
+```
+```
+cmake .. -DENABLE_ZEROMQ=ON -DENABLE_PCAP=ON
+```
+| Flag                 | Function                                                                   |
+| -------------------- | -------------------------------------------------------------------------- |
+| `-DENABLE_ZEROMQ=ON` | Enables ZeroMQ support (for inter-process messaging, remote control, etc.) |
+| `-DENABLE_PCAP=ON`   | Enables packet capture functionality (useful for debugging with Wireshark) |
+
+```
+make -j$(nproc)
+\\ Builds (compiles) the project using all available CPU cores.
+$(nproc) gets the number of available CPU threads, so the build is done faster.
+```
+```
+sudo make install
+\\ Installs the compiled binaries and libraries to your system (e.g., /usr/local/bin), allowing you to run srsran_ue, srsran_gnb, etc., directly from the terminal.
+
+```
