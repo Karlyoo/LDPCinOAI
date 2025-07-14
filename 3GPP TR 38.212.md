@@ -1,5 +1,69 @@
 # 5G NR Multiplexing and channel coding
 ---
+Input: MAC PDU (bytes)                                          
+        ↓
+┌──────────────────────────────┐
+│ CRC 附加 (crc_byte.c)         │    
+│ Output: bits + CRC           │    5.1 CRC calculation
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Physical-layer HARQ processing │
+│ Output: encoded bits         │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Segmentation (nr_segmentation.c) │  5.2 Code block segmentation and code block CRC attachment
+│ Output: LDPC segments (bits) │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ LDPC 編碼 (nr_dlsch_coding.c + CODING/) │   5.2.2 Low density parity check coding
+│ Output: encoded bits         │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Rate Matching + Interleaving │   6.2.5 Rate Matching
+│ Output: RM bits              │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Scrambling                   │
+│ Output: RM bits              │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ 調變 (Modulation: QPSK, 16QAM) │
+│ Output: complex symbols (IQ) │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Resource Grid Mapping │
+│ Output: complex symbols (IQ) │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Insert DMRS (UE uplink reference signal) │
+│ Output: complex symbols (IQ) │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ DFT-s-OFDM IFFT + CP 加入 (ofdm_mod.c) │
+│ Output: time-domain samples │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ 模擬通道:  │
+│ Input: TX samples            │
+│ Output: RX samples           │
+└────────────┬─────────────────┘
+             ↓
+
+
+
+
+
+
 ## CH4 Mapping to physical channels 
 - Uplink
   
