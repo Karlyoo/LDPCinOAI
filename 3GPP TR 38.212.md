@@ -1,69 +1,81 @@
 # 5G NR Multiplexing and channel coding
 ---
-Input: MAC PDU (bytes)                                          
+```
+Input: MAC PDU (bytes)
         ↓
-┌──────────────────────────────┐
-│ CRC 附加 (crc_byte.c)         │    
-│ Output: bits + CRC      
-│  **5.1 CRC calculation**
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Physical-layer HARQ processing │
-│ Output: encoded bits         │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Segmentation (nr_segmentation.c) │  
-│ Output: LDPC segments (bits)
-│**5.2 Code block segmentation and code block CRC attachment**
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ LDPC 編碼 (nr_dlsch_coding.c + CODING/) │   
-│ Output: encoded bits 
-│**5.2.2 Low density parity check coding**
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Rate Matching + Interleaving │   
-│ Output: RM bits
-│**6.2.5 Rate Matching**
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Scrambling                   │
-│ Output: RM bits              │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ 調變 (Modulation: QPSK, 16QAM) │
-│ Output: complex symbols (IQ) │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Resource Grid Mapping │
-│ Output: complex symbols (IQ) │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Insert DMRS (UE uplink reference signal) │
-│ Output: complex symbols (IQ)
-│**6.2.7 Data and control multiplexing**
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ DFT-s-OFDM IFFT + CP 加入 (ofdm_mod.c) │
-│ Output: time-domain samples │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ 模擬通道:  │
-│ Input: TX samples            │
-│ Output: RX samples           │
-└────────────┬─────────────────┘
-             ↓
-
+┌────────────────────────────────────┐
+│ CRC 附加                          │
+│ 檔案: crc_byte.c                   │
+│ Output: bits + CRC                │
+│ 標準: 5.1 CRC calculation          │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ Physical-layer HARQ processing     │
+│ 檔案: 內部緩存或 HARQ buffer 操作    │
+│ Output: encoded bits              │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ Segmentation                       │
+│ 檔案: nr_segmentation.c            │
+│ Output: LDPC Segments (bits)      │
+│ 標準: 5.2 Code block segmentation  │
+│       and code block CRC attachment│
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ LDPC 編碼                          │
+│ 檔案: nr_dlsch_coding.c, CODING/   │
+│ Output: encoded bits              │
+│ 標準: 5.2.2 Low Density Parity     │
+│       Check Coding                │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ Rate Matching + Interleaving       │
+│ 檔案: coding/nrRateMatch.c         │
+│ Output: RM bits                   │
+│ 標準: 6.2.5 Rate Matching         │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ Scrambling                         │
+│ 檔案: nr_scrambling.c              │
+│ Output: scrambled bits (RM bits)  │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ 調變 (Modulation: QPSK, 16QAM…)    │
+│ 檔案: modulation/nr_modulation.c   │
+│ Output: complex symbols (IQ)      │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ Resource Grid Mapping              │
+│ 檔案: mapping/nr_ulsch_modulation.c│
+│ Output: mapped IQ symbols         │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ 插入 DMRS (UE uplink reference)    │
+│ 檔案: nr_generate_dmrs.c           │
+│ Output: IQ with DMRS              │
+│ 標準: 6.2.7 Data & Control Mux     │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ DFT-s-OFDM IFFT + CP 加入          │
+│ 檔案: ofdm_mod.c                   │
+│ Output: time-domain samples       │
+└────────────────────────────────────┘
+        ↓
+┌────────────────────────────────────┐
+│ 模擬通道 (AWGN, fading...)         │
+│ 檔案: channel_model.c 或實驗平台      │
+│ Output: RX samples                │
+└────────────────────────────────────┘
+```
 
 
 
