@@ -153,11 +153,14 @@ sudo make install
 ```
 
 <img width="732" height="152" alt="image" src="https://github.com/user-attachments/assets/2958a824-2f7d-4311-974c-34794aff1eef" />
+
 ```
 mkdir -p ~/srsran_test
 cd ~/srsran_test
 ```
+
 ### gnb.yaml
+
 ```
 # ~/srsran_test/gnb.yaml
 sdr:
@@ -180,6 +183,7 @@ gnb:
 ```
 
 ### ue.yaml
+
 ```
 # ~/srsran_test/ue.yaml
 sdr:
@@ -196,7 +200,9 @@ sim:
 pcap:
   enable: true
 ```
+
 ### amf.yaml
+
 ```
 # ~/srsran_test/amf.yaml
 amf:
@@ -208,6 +214,6 @@ amf:
       mnc: 01
       tac: [1]
 ```
-
+目前困難:無法在終端機呼叫gnb.yaml等程式
 
 
