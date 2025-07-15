@@ -151,3 +151,63 @@ sudo make install
 \\ Installs the compiled binaries and libraries to your system (e.g., /usr/local/bin), allowing you to run srsran_ue, srsran_gnb, etc., directly from the terminal.
 
 ```
+
+<img width="732" height="152" alt="image" src="https://github.com/user-attachments/assets/2958a824-2f7d-4311-974c-34794aff1eef" />
+```
+mkdir -p ~/srsran_test
+cd ~/srsran_test
+```
+### gnb.yaml
+```
+# ~/srsran_test/gnb.yaml
+sdr:
+  device_name: "zmq"
+  zmq:
+    tx_port: 2000
+    rx_port: 2001
+
+amf:
+  addr: 127.0.0.1
+  port: 38412
+  bind_addr: 127.0.0.1
+
+gnb:
+  id: 0x42
+  tac: 1
+  plmn: ["00101"]
+  nci: 0x000000010
+  nr_cell_id: 0x42
+```
+
+### ue.yaml
+```
+# ~/srsran_test/ue.yaml
+sdr:
+  device_name: "zmq"
+  zmq:
+    tx_port: 2001
+    rx_port: 2000
+
+sim:
+  imsi: "001010000000001"
+  key: "465b5ce8b199b49faa5f0a2ee238a6bc"
+  opc: "e8ed289deba952e4283b54e88e6183ca"
+
+pcap:
+  enable: true
+```
+### amf.yaml
+```
+# ~/srsran_test/amf.yaml
+amf:
+  bind_addr: 127.0.0.1
+  cert: ""
+  key: ""
+  plmn_support_list:
+    - mcc: 001
+      mnc: 01
+      tac: [1]
+```
+
+
+
