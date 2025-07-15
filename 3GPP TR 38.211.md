@@ -149,6 +149,7 @@ while i < N_q^bit:
 #### 6.3.1.2 Modulation
 - Input: Scrambled bit sequence for codeword q = 0
 - Output: Modulated complex-valued symbols d_q(0), ..., d_q(N_symb(q) - 1)
+  
 | Transform Precoding | Modulation Scheme | Modulation Order (Q<sub>m</sub>) |
 | ------------------- | ----------------- | -------------------------------- |
 | **Disabled**        | π/2-BPSK          | 1                                |
