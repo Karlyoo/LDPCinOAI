@@ -7,8 +7,20 @@
 | `modulation_UE.h` | 定義UE在實體層接收端調變/解調變的前端處理的核心函數介面  | 
 | `modulation_eNB.h`  | 定義 基地台在實體層中與調變和波束賦形相關的關鍵函數介面。 | 
 | `nr_modulation.c`                 | 用於 調變 (Modulation)、層映射 (Layer Mapping)、DFT (離散傅立葉轉換) 和 預編碼 (Precoding)    | 
-| `ofdm_mod.c`              | 5G NR 系統的 OFDM 調變流程，用於下行通道             | 
-| `slot_fep_nr.c`        | 針對Downlink和Uplink的 OFDM 信號解調 | 
+| `modulation_common.h` | NR UE 中使用的共通調變常數 |
+| `modulation_extern.h` |  調變模組中使用的 extern 函式與變數宣告 |
+
+##  OFDM 與前端處理模組
+
+| 檔案名稱 | 功能分類 | 描述 |
+|----------|----------|------|
+| `ofdm_mod.c` | OFDM 調變 | 包含 FFT/IFFT 實作、CP 插入邏輯（NR/LTE 通用） |
+| `slot_fep.c` | Slot FEP | LTE slot 前端處理（接收端用，做 FFT 等） |
+| `slot_fep_mbsfn.c` | Slot FEP | MBSFN 專用 slot 前處理 |
+| `slot_fep_nr.c` | Slot FEP (NR) | 5G NR slot 的接收前處理（FFT、SC-FDMA 處理等） |
+| `slot_fep_ul.c` | Slot FEP (UL) | 上行 LTE slot 處理邏輯 |
+
+
 ### nr_modulation.c
 - 調變 (nr_modulation)：將編碼後的bitstream映射到 QPSK、16-QAM、64-QAM 或 256-QAM 的複數符號。
   - 輸入參數:
