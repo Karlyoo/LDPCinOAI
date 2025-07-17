@@ -14,12 +14,19 @@
 
 | 檔案名稱 | 功能分類 | 描述 |
 |----------|----------|------|
-| `ofdm_mod.c` | OFDM 調變 | 包含 FFT/IFFT 實作、CP 插入邏輯（NR/LTE 通用） |
+| `ofdm_mod.c` | OFDM modulation |  FFT/IFFT、CP insert（NR/LTE 通用） |
 | `slot_fep.c` | Slot FEP | LTE slot 前端處理（接收端用，做 FFT 等） |
 | `slot_fep_mbsfn.c` | Slot FEP | MBSFN 專用 slot 前處理 |
 | `slot_fep_nr.c` | Slot FEP (NR) | 5G NR slot 的接收前處理（FFT、SC-FDMA 處理等） |
 | `slot_fep_ul.c` | Slot FEP (UL) | 上行 LTE slot 處理邏輯 |
 
+```
+  A[Encoded Codewords] --> B[nr_modulation.c (QAM Mapping)]
+  B --> C[Resource Mapping]
+  C --> D[OFDM IFFT + CP insert (ofdm_mod.c)]
+  D --> E[Slot packing (slot_fep_nr.c)]
+  E --> F[ RF or channel simulator]
+```
 
 ### nr_modulation.c
 - 調變 (nr_modulation)：將編碼後的bitstream映射到 QPSK、16-QAM、64-QAM 或 256-QAM 的複數符號。
@@ -126,3 +133,105 @@ case 6:
     根據完整的複數權重（from PMI PDU）進行乘法累加，每個 layer 對應一組 weight (Re + jIm)對每個 layer 的符號與其權重做複數乘法，最後累加所有 layer 結果
   - void nr_layer_precoder_simd():
     使用 SIMD 向量化指令加速 Layer-to-Antenna 的 Precoding
+
+## nr_dlsch_demodulation.c  
+```
+nr_rx_pdsch()
+│
+├─ nr_dlsch_channel_level()           ← 只在整個 PDSCH 首個 symbol 時執行，用來計算每個 layer+antenna 的平均通道強度，用於後續 scaling 與合併。
+│
+├─ nr_dlsch_channel_compensation()    ← Equalization 核心：頻域符號乘上通道共軛值 + magnitude 計算 (|H|²) 並分為 QAM scaling → output 是 rxdataF_comp[]：補償後的頻域資料，供後續處理使用。
+│
+├─ nr_dlsch_detection_mrc()           ← 若使用 MRC，這邊進行多天線合併（非 spatial multiplexing）
+│
+├─ modulation-specific LLR 計算：根據 modulation 呼叫
+│   ├─ nr_dlsch_qpsk_llr()
+│   ├─ nr_dlsch_qam16_llr()
+│   └─ nr_dlsch_qam64_llr()
+│    (根據調變類型（QPSK、16QAM、64QAM、256QAM）計算出軟決 LLR 給 Transport layer buffer 使用。)
+└─ LLR 輸出 → softbuffer → LDPC 解碼
+
+```
+
+| 階段                   | 輸入資料                                 | 輸出資料                                 |
+| -------------------- | ------------------------------------ | ------------------------------------ |
+| 提取 RBs & 通道估計        | `rxdataF`, `dl_ch_estimates`         | `rxdataF_ext`, `dl_ch_estimates_ext` |
+| Channel scaling      | `dl_ch_estimates_ext`                | scale 過後的 channel estimate           |
+| Channel compensation | `rxdataF_ext`, `dl_ch_estimates_ext` | `rxdataF_comp`, `dl_ch_mag*`         |
+| MRC/MMSE             | `rxdataF_comp`, `dl_ch_mag*`, `rho`  | 解調後流、MMSE 參數                         |
+| LLR 計算               | `rxdataF_comp`、`dl_ch_mag*`          | 每 symbol LLR buffer (`layer_llr`)    |
+| Layer mapping &輸出    | `layer_llr`, TB config               | `llr[CW0]`, `llr[CW1]`               |
+
+```
+NR_DL_UE_HARQ_t *dlsch0_harq, *dlsch1_harq;
+dlsch0_harq = &ue->dl_harq_processes[0][harq_pid];
+```
+- 根據 HARQ PID 判斷目前哪個 TB（Transport Block）活躍：
+  - 如果兩個 HARQ 都 active，會設 codeword_TB0/1
+  - 否則就只處理一個 TB
+```
+nr_dlsch_extract_rbs()
+```
+- 這裡會從接收的 rxdataF 中提取對應 PDSCH RB 的樣本，並對應延伸（ext）到：
+- rxdataF_ext[]：接收到的符號樣本
+- dl_ch_estimates_ext[]：延伸後的 channel estimation
+  
+```
+nr_dlsch_channel_level()
+```
+- 計算每條通道（每對 tx-rx antenna）的能量值
+- 計算結果會給：
+  - MRC 合併
+  - LLR 正規化
+  - log2_maxh：最大 channel gain，用來調整量化位元深度
+```
+nr_dlsch_channel_compensation()
+```
+- 把接收到的信號（rxdataF_ext）
+  - 用 channel estimate 補償
+  - 存成 rxdataF_comp：補償後資料，並傳至LLR做計算
+    
+```
+static void nr_dlsch_llr(uint32_t rx_size_symbol,
+                         int nbRx,
+                         uint sz,
+                         int16_t layer_llr[][sz],
+                         int32_t rxdataF_comp[][nbRx][rx_size_symbol * NR_SYMBOLS_PER_SLOT],
+                         int32_t dl_ch_mag[rx_size_symbol],
+                         int32_t dl_ch_magb[rx_size_symbol],
+                         int32_t dl_ch_magr[rx_size_symbol],
+                         NR_DL_UE_HARQ_t *dlsch0_harq,
+                         NR_DL_UE_HARQ_t *dlsch1_harq,
+                         unsigned char symbol,
+                         uint32_t len,
+                         NR_UE_DLSCH_t dlsch[2],
+                         uint32_t llr_offset_symbol)
+{
+  switch (dlsch[0].dlsch_config.qamModOrder) {
+    case 2 :
+      for(int l = 0; l < dlsch[0].Nl; l++)
+        nr_qpsk_llr(&rxdataF_comp[l][0][symbol * rx_size_symbol], layer_llr[l] + llr_offset_symbol, len);
+      break;
+
+    case 4 :
+      for(int l = 0; l < dlsch[0].Nl; l++)
+        nr_16qam_llr(&rxdataF_comp[l][0][symbol * rx_size_symbol], dl_ch_mag, layer_llr[l] + llr_offset_symbol, len);
+      break;
+
+    case 6 :
+      for(int l=0; l < dlsch[0].Nl; l++)
+        nr_64qam_llr(&rxdataF_comp[l][0][symbol * rx_size_symbol], dl_ch_mag, dl_ch_magb, layer_llr[l] + llr_offset_symbol, len);
+      break;
+
+    case 8:
+      for(int l=0; l < dlsch[0].Nl; l++)
+        nr_256qam_llr(&rxdataF_comp[l][0][symbol * rx_size_symbol], dl_ch_mag, dl_ch_magb, dl_ch_magr, layer_llr[l] + llr_offset_symbol, len);
+      break;
+
+    default:
+      AssertFatal(false, "Unknown mod_order!!!!\n");
+      break;
+  }
+```
+- 照接收到的數字選擇解llr的方式
+- nr_256qam_llr等程式存放於nr_phy_common.c
