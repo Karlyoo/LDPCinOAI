@@ -231,6 +231,6 @@ LDPC 編碼：生成奇偶校驗位元，增加冗餘。
 - OFDM 調製：
   應用頻域旋轉，執行 IFFT 和循環前綴添加，生成時域信號（nr_ue_pusch_common_procedures）。輸出到 txdata。
 ## LDPC Encoding
-
+[ldpc_encoding](https://github.com/Karlyoo/LDPCinOAI/blob/main/ldpc_encodeanddecode.md#ldpc-encoder-code-in-oai-5gnr)
 ## Modulation
 [modulation](https://github.com/Karlyoo/LDPCinOAI/blob/main/modulation%26demodulation.md#modulation)
