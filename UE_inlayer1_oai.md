@@ -62,15 +62,6 @@ Input: MAC PDU (bytes)
 └────────────┬─────────────────┘
              ↓
 ```
-| 功能                       | 3GPP 規格章節                | OAI 對應函式                                                        |
-| ------------------------ | ------------------------ | --------------------------------------------------------------- |
-| Scrambling               | 38.211 §7.3.1.1          | `nr_pdsch_unscrambling()`                                       |
-| Modulation               | 38.211 §7.3.2            | `nr_dlsch_llr_level()`、`nr_rx_pdsch()`                          |
-| Layer Mapping            | 38.211 §7.3.1.2          | 內含於 `nr_rx_pdsch()` 處理中                                         |
-| Resource Mapping (RE 分配) | 38.211 §7.3.3            | `nr_dlsch_extract_rbs()`、`nr_dlsch_channel_compensation()`      |
-| Channel Estimation       | 38.211 §6.4.1.1.2 (DMRS) | `nr_pbch_channel_estimation()`、或來自 `dlsch_channel_estimation()` |
-| LLR 計算                   | 38.212 附錄 A              | `nr_dlsch_qpsk_llr()`, `nr_dlsch_16qam_llr()` 等                 |
-
 
 
 | 子資料夾                           | 功能                                      | 重點說明                                              |
@@ -110,6 +101,18 @@ Input: MAC PDU (bytes)
 | `pucch_nr.h`                  |   定義UE端和PUCCH相關的數據結構、函數，用於實現UCI的傳輸。              | 
 | `srs_modulation_nr.c`                    | 實現UE端的 SRS（Sounding Reference Signal，探測參考信號)生成和處理功能 |
 | `srs_modulation_nr.h`                    | 定義UE端和SRS相關的數據結構、函數   | 
+
+## 對應3GPP規範及OAI函式
+
+| 功能                       | 3GPP 規格章節                | OAI 對應函式                                                        |
+| ------------------------ | ------------------------ | --------------------------------------------------------------- |
+| Scrambling               | 38.211 §7.3.1.1          | `nr_pdsch_unscrambling()`                                       |
+| Modulation               | 38.211 §7.3.2            | `nr_dlsch_llr_level()`、`nr_rx_pdsch()`                          |
+| Layer Mapping            | 38.211 §7.3.1.2          | 內含於 `nr_rx_pdsch()` 處理中                                         |
+| Resource Mapping (RE 分配) | 38.211 §7.3.3            | `nr_dlsch_extract_rbs()`、`nr_dlsch_channel_compensation()`      |
+| Channel Estimation       | 38.211 §6.4.1.1.2 (DMRS) | `nr_pbch_channel_estimation()`、或來自 `dlsch_channel_estimation()` |
+| LLR 計算                   | 38.212 附錄 A              | `nr_dlsch_qpsk_llr()`, `nr_dlsch_16qam_llr()` 等                 |
+
 
 ## coding
 **openair1/PHY/NR_UE_TRANSPORT/nr_ulsch_coding.c**
