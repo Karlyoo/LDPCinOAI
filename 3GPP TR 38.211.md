@@ -65,6 +65,7 @@
 output.
 <img width="938" height="165" alt="image" src="https://github.com/user-attachments/assets/d100f01d-4867-48f8-af10-da2d8392f7e0" />
 <img width="537" height="574" alt="image" src="https://github.com/user-attachments/assets/d40729a3-46c5-4636-b43b-cb33ba702f65" />
+
 ### 5.3.1 Baseband Signal for All Channels Except PRACH and RIM-RS
 #### Time-domain Baseband Signal Definition
 - The time-domain signal on antenna port p, symbol index l, and subcarrier spacing configuration mu is:
