@@ -559,12 +559,70 @@ N_sc,SRS = m_SRS,b · N_sc^RB / comb
 (slot_index - Toffset) mod T_SRS == 0
 ```
 
+# 7. Downlink
+### 7.1.1 Physical Channels
+**Downlink physical channels carry higher layer information and include:**
+- Physical Downlink Shared Channel (PDSCH)
+- Physical Broadcast Channel (PBCH)
+- Physical Downlink Control Channel (PDCCH)
+### 7.1.2 Physical Signals
+- Downlink physical signals are used by the physical layer but do not carry higher-layer information:
+  - Demodulation Reference Signal (DM-RS)
+  - Phase Tracking Reference Signal (PT-RS)
+  - Positioning Reference Signal (PRS)
+  - Channel State Information Reference Signal (CSI-RS)
+  - Primary Synchronization Signal (PSS)
+  - Secondary Synchronization Signal (SSS)
+## 7.2 Physical Resources
+- Downlink antenna ports:
+  - Ports starting with 1000: PDSCH
+  - Ports starting with 2000: PDCCH
+  - Ports starting with 3000: CSI-RS
+  - Ports starting with 4000: SS/PBCH block
+  - Ports starting with 5000: PRS
+- UE must not assume two antenna ports are quasi co-located (QCL) unless explicitly specified.
 
+## 7.3 Physical Channels
+### 7.3.1 PDSCH (Physical Downlink Shared Channel)
+#### 7.3.1.1 Scrambling
+- Up to two codewords (q ∈ {0,1}) may be transmitted.
+- For each codeword, bits are scrambled before modulation:
+```
+b_scrambled(q)(j) = b(q)(j) + c(q)(j) mod 2
+```
+- The scrambling sequence c(q)(j) is initialized using:
+```
+c_init = RNTI * 2^15 + q * 2^14 + nID
+```
+#### 7.3.1.2 Modulation
+Scrambled bits are modulated using one of the following schemes:
 
+| Modulation | Order (Qm) |
+| ---------- | ---------- |
+| QPSK       | 2          |
+| 16QAM      | 4          |
+| 64QAM      | 6          |
+| 256QAM     | 8          |
 
+#### 7.3.1.3 Layer Mapping
+- Scrambled modulation symbols are mapped to transmission layers based on the number of codewords and layers.
+- Mapping follows specific rules (see Table 7.3.1.3-1 in the spec) depending on:
+  - Number of layers (1–8)
+- Whether single or dual codewords are transmitted
 
+#### 7.3.1.4 Antenna Port Mapping
+- Each layer is mapped to a corresponding antenna port (e.g., ports 1000+ for PDSCH).
+- The number of antenna ports used equals the number of layers.
 
-
-
-
+#### 7.3.1.5 Mapping to Virtual Resource Blocks
+- The mapping of modulation symbols to Resource Elements (REs) follows these rules:
+  - Only mapped to REs in assigned virtual resource blocks (VRBs).
+  - REs must not:
+     - Overlap with associated DM-RS or other UEs' DM-RS
+     - Be used by non-zero-power CSI-RS (with some exceptions)
+     - Be used by PT-RS
+     - Be declared unavailable for PDSCH (per TS 38.214 clause 5.1.4)
+  - Symbols are mapped in increasing order by:
+     - Subcarrier index k' within VRBs
+     - Symbol index l
 
