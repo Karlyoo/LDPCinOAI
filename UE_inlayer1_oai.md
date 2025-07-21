@@ -21,7 +21,7 @@ Input: MAC PDU (bytes)
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ LDPC 編碼 (nr_dlsch_coding.c + CODING/) │
+│ LDPC 編碼 (nr_dlsch_coding.c ) │
 │ Output: encoded bits         │
 └────────────┬─────────────────┘
              ↓
