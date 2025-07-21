@@ -626,3 +626,227 @@ Scrambled bits are modulated using one of the following schemes:
      - Subcarrier index k' within VRBs
      - Symbol index l
 
+### 7.3.2 Physical Downlink Control Channel (PDCCH)
+#### 7.3.2.1 Control-Channel Element (CCE)
+- A PDCCH consists of one or more CCEs.
+- Supported aggregation levels: 1, 2, 4, 8, 16 CCEs (see Table 7.3.2.1-1).
+- Each CCE consists of 6 REGs (Resource Element Groups).
+- One REG = 1 Resource Block (RB) over 1 OFDM symbol.
+
+#### 7.3.2.2 Control-Resource Set (CORESET)
+- A CORESET spans a defined number of RBs (frequency) and symbols (time), where symbol ∈ {1, 2, 3}.
+- REGs within a CORESET are indexed in time-first order: increasing symbol index, then RB index.
+- One CORESET contains a total of N_REG = RB_CORESET × symbol_CORESET REGs.
+- CCE-to-REG mapping:
+   - One mapping per CORESET.
+   - Two mapping types:
+      - Non-interleaved: REG bundle size L = 6.
+      - Interleaved: L ∈ {2, 3, 6} depending on symbol_CORESET.
+- REG bundle i contains REGs:
+```
+{Li, Li+1, ..., Li+L-1}
+```
+
+#### 7.3.2.3 Scrambling
+- Bits b(0)...b(bit-1) are scrambled before modulation:
+```
+b_scrambled(i) = b(i) + c(i) mod 2
+```
+Scrambling sequence c(i) initialized with:
+```
+c_init = RNTI × 2^15 + n_ID × 2^0
+```
+- where:
+  - If pdcch-DMRS-ScramblingID is configured: n_ID = that value
+  - Otherwise: n_ID = cell ID
+  - RNTI = C-RNTI for UE-specific search space; 0 otherwise
+
+
+#### 7.3.2.4 Modulation
+- Modulation is QPSK.
+- Resulting in complex-valued symbols: d(0)...d(symb-1)
+
+#### 7.3.2.5 Mapping to Physical Resources
+- Symbols d(0)...d(symb-1) are scaled by β_PDCCH and mapped to REs not used by DM-RS.
+- Mapped in increasing order of subcarrier (k), then OFDM symbol (l).
+- Antenna port = 2000.
+
+### 7.3.3 Physical Broadcast Channel (PBCH)
+#### 7.3.3.1 Scrambling
+- Bits b(0)...b(Mbit-1) are scrambled:
+```
+b_scrambled(i) = b(i) + c(i + Mbit × ν) mod 2
+```
+- Scrambling sequence initialized with:
+```
+c_init = cell ID
+```
+- Index ν depends on SS/PBCH candidate index:
+  - If Ssb-PositionsInBurst ≤ 4 → use 2 LSBs of index
+  - If > 4 → use 3 LSBs
+- Max number of SS/PBCH blocks per half-frame defined in TS 38.213 §13
+
+#### 7.3.3.2 Modulation
+- Modulation is QPSK:
+```
+b_scrambled → QPSK → complex symbols d(0)...d(symb-1)
+```
+## 7.4 Physical signals
+### 7.4.1 Reference signals
+#### 7.4.1.1 Demodulation reference signals for PDSCH
+##### 7.4.1.1.1 Sequence generation
+- The complex DM-RS sequence r(n) is generated from a pseudo-random sequence c(i).
+  - r(n) = (1/sqrt(2)) * (c(2n) + j * c(2n+1))
+- The pseudo-random generator is initialized with a value c_init.
+- Initialization Formula c_init:
+```
+c_init = (2^17 * (n_symb_slot * (n_s,f_u) + l + 1) * (2 * N_ID + 1) * 2^5 + (2 * N_ID) + n_SCID) mod 2^31
+```
+- l: OFDM symbol number in the slot.
+- n_s,f: Slot number in the frame.
+- N_ID and n_SCID: Scrambling identities.
+- Determining N_ID and n_SCID:
+  - N_ID is derived from higher-layer parameters scramblingID0 and scramblingID1 in the DMRS-DownlinkConfig Information Element (IE). The specific N_ID used depends on the Downlink Control Information (DCI) format (1_0, 1_1, or 1_2).
+  - n_SCID is typically given by the DM-RS sequence initialization field in the DCI. If that field is not present, n_SCID is 0.
+
+##### 7.4.1.1.2 Mapping to Physical Resources 
+- DM-RS is mapped to physical resources based on dmrs-Type (Configuration Type 1 or Type 2).
+- The sequence is scaled by a power factor beta_DMRS_PDSCH.
+- The mapping to resource elements a_k,l depends on antenna port p, time-domain index l', and frequency-domain index k'.
+- Mapping Reference Points:
+  - Frequency (k): The reference is subcarrier 0 of a specific Common Resource Block (CRB), typically CRB 0.
+  - Time (l): The reference point and starting DM-RS symbol l0 depend on the PDSCH mapping type.
+  - Mapping Type A: l is relative to the start of the slot. l0 is position 2 or 3.
+  - Mapping Type B: l is relative to the start of the scheduled PDSCH resources. l0 is position 0.
+- DM-RS Symbol Positions:
+  - The exact positions of the DM-RS symbols are determined by the PDSCH duration (l_d) and additional position settings (dmrs-AdditionalPosition).
+  - Tables 7.4.1.1.2-3 (single-symbol) and 7.4.1.1.2-4 (double-symbol) define the specific OFDM symbol locations (l) for different PDSCH durations and configurations.
+- Single vs. Double Symbol DM-RS:
+  - This is determined by the higher-layer parameter maxLength. If not configured, it's single-symbol. If set to 'len2', the DCI determines if it's single or double.
+
+#### 7.4.1.3 Demodulation Reference Signals for PDCCH 
+- The reference signal sequence r(l) is generated from a pseudo-random sequence c(i).
+  - Formula: r(l) = (1/sqrt(2)) * (c(2i) + j*c(2i+1))
+- The generator is initialized with c_init at the start of each OFDM symbol l.
+  ```
+   Initialization Formula (c_init): c_init = (2^21 * (n_s,f * N_symb_slot + l + 1) * (2 * N_ID + 1) + 2 * N_ID) mod 2^31
+  ```
+  - n_s,f is the slot number within a frame.
+  - l is the OFDM symbol number within the slot.
+  - N_ID is given by the higher-layer parameter pdcch-DMRS-ScramblingID. If not provided, it defaults to the physical cell ID.
+
+**Mapping to Physical Resources**
+- The sequence is mapped to resource elements a_k,l with a power scaling factor beta_PDCCH_DMRS.
+- Mapping is done every 4th subcarrier (k = n * 4 + k').
+- The mapping is confined to the resource-element groups (REGs) within the Control Resource Set (CORESET) where the UE is attempting to decode the PDCCH.
+- The frequency reference point (k=0) is subcarrier 0 of the lowest-numbered resource block in the CORESET.
+- The antenna port is fixed to p = 2000.
+- Quasi Co-location (QCL): PDCCH DM-RS can be assumed to be QCL with the SS/PBCH block for Doppler, delay, and spatial parameters.
+
+#### 7.4.1.4 Demodulation Reference Signals for PBCH 
+- The reference signal sequence r(n) is generated from a pseudo-random sequence c(n).
+- The generator is initialized with c_init at the start of each SS/PBCH block occasion.
+- Initialization Formula (c_init):
+ ```
+  c_init = 2^11 * (i_SSB + 1) + 2^6 * (i_SSB + 1) + N_ID_cell
+ ```
+  - N_ID_cell is the physical cell ID.
+  - i_SSB is derived from the candidate SS/PBCH block index and the half-frame number. Its calculation depends on whether the maximum number of SS/PBCH blocks is 4 or greater than 4.
+
+#### 7.4.1.5 Channel State Information Reference Signals (CSI-RS) 
+- There are two types of CSI-RS:
+  - Non-Zero-Power (NZP) CSI-RS: Used for channel measurement. A sequence is generated and transmitted.
+  - Zero-Power (ZP) CSI-RS: No signal is transmitted on these resource elements. The UE assumes these resources are not used for PDSCH, allowing it to measure interference.
+**Sequence Generation (for NZP CSI-RS)**
+- The sequence r(n) is generated from a pseudo-random sequence c(i).
+- The generator is initialized with c_init at the start of each OFDM symbol containing CSI-RS.
+- Initialization Formula (c_init):
+```
+c_init = (2^10 * (N_symb_slot * n_s,f + l + 1) * (2 * n_ID + 1) + n_ID) mod 2^31
+```
+  - n_s,f is the slot number within a radio frame.
+  - l is the OFDM symbol number within a slot.
+  - n_ID is given by higher-layer parameters scramblingID or sequenceGenerationConfig.
+
+**Mapping to Physical Resources (for NZP CSI-RS)**
+- The sequence is mapped to resource elements a_k,l with a power scaling factor beta_CSIRS.
+- The mapping is highly flexible and defined by multiple higher-layer parameters.
+- Location:
+  - Time Domain: The OFDM symbols used are given by ```firstOFDMSymbolInTimeDomain```.
+  - Frequency Domain: The resource blocks and subcarriers used are defined by a bitmap in ```frequencyDomainAllocation```.
+- Density and Ports:
+  - The density parameter controls how sparse or dense the CSI-RS is in the frequency domain.
+  - The ```nrofPorts``` parameter specifies the number of antenna ports.
+- Code Division Multiplexing (CDM):
+  - Multiple antenna ports can be multiplexed onto the same time-frequency resources using orthogonal cover codes (OCC).
+  - The cdm-Type parameter (e.g., 'noCDM', 'fd-CDM2', 'cdm4-FD2-TD2') specifies the CDM scheme.
+  - Table 7.4.1.5.3-1 defines the resource element patterns for different numbers of ports and CDM types.
+- Antenna Ports: CSI-RS ports are numbered starting from p = 3000.
+- Periodicity: CSI-RS can be configured to be transmitted periodically based on a slot periodicity and offset (CSI-ResourcePeriodicityAndOffset).
+
+Of course. Here are the notes based on the provided text.
+
+### 7.4.2 Synchronization Signals
+#### 7.4.2.1 Physical-layer Cell Identities 
+- There are 1008 unique physical-layer cell identities (N_cell_ID).
+- The cell ID is composed of two parts:
+```
+N_cell_ID = 3 * N_ID^(1) + N_ID^(2)
+```
+  - N_ID^(1) is a value from 0 to 335.
+  - N_ID^(2) is a value from 0 to 2.
+
+#### 7.4.2.2 Primary Synchronization Signal (PSS) 
+- The PSS sequence is denoted as d_PSS(n) and has a length of 127.
+- It is a BPSK-modulated m-sequence.
+- Formula: d_PSS(n) = 1 - 2*x(m)
+  - The index m depends on the N_ID^(2) component of the cell ID:
+  ```
+  m = (n + 43 * N_ID^(2)) mod 127
+  ```
+- The sequence x(i) is a length-127 m-sequence generated by a specific polynomial with a defined initial value. This allows the UE to determine N_ID^(2) by testing the three possible PSS sequences.
+
+
+#### 7.4.2.3 Secondary Synchronization Signal (SSS) 
+- The SSS sequence is denoted as d_SSS(n) and has a length of 127.
+- It is generated by multiplying two different length-127 m-sequences (x_0 and x_1).
+- Formula: d_SSS(n) = [1 - 2*x_0(m_0)] * [1 - 2*x_1(m_1)]
+  - The indices m_0 and m_1 depend on the N_ID^(1) and N_ID^(2) components of the cell ID:
+```
+m_0 = (n + m') mod 127, where m' is a function of N_ID^(1).
+m_1 = (n + N_ID^(1) mod 112) mod 127.
+```
+- The sequences x_0(i) and x_1(i) are generated by different polynomials with defined initial values. This structure allows the UE to determine the N_ID^(1) part of the cell ID.
+
+### 7.4.3 SS/PBCH Block
+#### 7.4.3.1 Time-Frequency Structure 
+- An SS/PBCH block is a dedicated resource block for transmitting synchronization signals and the physical broadcast channel.
+- Time Domain: The block spans 4 consecutive OFDM symbols, numbered 0 to 3.
+- Frequency Domain: The block spans 240 contiguous subcarriers, numbered 0 to 239.
+- A single antenna port, p = 4000, is used for all signals (PSS, SSS, PBCH) and channels within the block.
+- All components within the block share the same subcarrier spacing and cyclic prefix length.
+**Resource Mapping within the Block**
+- The mapping of signals and channels to specific resource elements (REs) within the 4x240 grid is fixed, as defined in Table 7.4.3.1-1.
+- Primary Synchronization Signal (PSS):
+  - Location: Mapped to OFDM symbol 0.
+  -Frequency: Occupies the central 127 subcarriers (from subcarrier 56 to 182).
+- Secondary Synchronization Signal (SSS):
+  - Location: Mapped to OFDM symbol 2.
+  - Frequency: Also occupies the central 127 subcarriers (from subcarrier 56 to 182).
+- Physical Broadcast Channel (PBCH):  
+  - Location: Mapped across OFDM symbols 1 and 3, and the subcarriers in symbol 2 not used by the SSS.
+  - The PBCH data is mapped to all REs in its assigned symbols that are not reserved for the PBCH DM-RS.
+- PBCH Demodulation Reference Signal (DM-RS):  
+  - Location: Interspersed within the PBCH symbols (OFDM symbols 1, 2, and 3).
+  - Frequency: Mapped sparsely, occurring on every 4th subcarrier.
+  - The starting position of the DM-RS pattern is shifted based on the cell ID: v = N_cell_ID mod 4. This allows a UE to get a rough idea of the cell ID early in the synchronization process.
+- Unused Resources ("Set to 0"):
+  - The subcarriers at the edges of symbols 0 and 2 (outside the PSS and SSS) are set to zero.
+
+**Mapping Process for Signals and Channels**
+- PSS/SSS Mapping:
+   - The 127 symbols of the PSS and SSS sequences are scaled by power factors (beta_PSS and beta_SSS).
+   - They are then mapped to their respective resource elements in increasing order of the subcarrier index k.
+- PBCH/DM-RS Mapping:
+   - The PBCH and its DM-RS symbol sequences are also scaled by their respective power factors.
+   - They are mapped to their allocated resource elements by first increasing the subcarrier index k across the frequency domain, and then increasing the OFDM symbol index l.
