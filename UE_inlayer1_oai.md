@@ -106,9 +106,9 @@ Input: MAC PDU (bytes)
 
 | 功能                       | 3GPP 規格章節                | OAI 對應函式                                                        |
 | ------------------------ | ------------------------ | --------------------------------------------------------------- |
-|CRC attachment            |  38.212 §5.1             |                                                                |
-|Segmentation              |                          |                                                                 |
-|LDPC encoding             |                          |                                                                 |
+| CRC attachment            |  38.212 §5.1             |    crc24a()、crc24b().....                                            |
+| Segmentation              |  38.212 §5.2             |    nr_segmentation()                                           |
+| LDPC encoding             |  38.212 §5.2             |    LDPCencoder()                                             |
 | Scrambling               | 38.211 §7.3.1.1          | `nr_pdsch_unscrambling()`                                       |
 | Modulation               | 38.211 §7.3.2            | `nr_dlsch_llr_level()`、`nr_rx_pdsch()`                          |
 | Layer Mapping            | 38.211 §7.3.1.2          | 內含於 `nr_rx_pdsch()` 處理中                                         |
