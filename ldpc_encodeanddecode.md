@@ -51,6 +51,94 @@ LDPC File list
 |  `nrLDPC_coding_segment_encoder.c`            | 進行單個 8-block 的編碼處理 | `ldpc8blocks()`                                 |
 |`ldpc_encode_parity_check.c`|執行 parity 計算|`encode_parity_check_part_optim()`|
 
+
+## coding
+**openair1/PHY/NR_UE_TRANSPORT/nr_ulsch_coding.c**
+實現 5G NR UE 的上行共享通道 (ULSCH) 編碼流程
+- 資料準備：從輸入參數中提取TB的配置（如大小、調製方式、編碼率等）。
+```
+   int nr_ulsch_encoding(PHY_VARS_NR_UE *ue,
+                      NR_UE_ULSCH_t *ulsch,
+                      const uint32_t frame,
+                      const uint8_t slot,
+                      unsigned int *G,
+                      int nb_ulsch,
+                      uint8_t *ULSCH_ids)
+- ue：指向 UE 在PHY的結構，包含 UE 的配置和狀態。
+- ulsch：指向 ULSCH 結構，包含上行共享通道的配置（如 PUSCH PDU）。
+- frame：在執行的幀編號。
+- slot：在執行的時隙編號。
+- G：編碼後的數據bits數 (碼塊大小)，每個 PUSCH 對應一個 G 值。
+- nb_ulsch：需要處理的 PUSCH (Physical Uplink Shared Channel) 數量。
+- ULSCH_ids：ULSCH 的 ID 陣列，用於搜尋不同的 ULSCH 實例。
+```
+```
+unsigned int crc = 1;
+    NR_UL_UE_HARQ_t *harq_process = &ue->ul_harq_processes[harq_pid];
+    const nfapi_nr_ue_pusch_pdu_t *pusch_pdu = &ulsch->pusch_pdu;
+    uint16_t nb_rb = pusch_pdu->rb_size;
+    uint32_t A = pusch_pdu->pusch_data.tb_size << 3;
+    uint8_t Qm = pusch_pdu->qam_mod_order;
+    // target_code_rate is in 0.1 units
+    float Coderate = (float)pusch_pdu->target_code_rate / 10240.0f;
+
+    LOG_D(NR_PHY, "ulsch coding nb_rb %d, Nl = %d\n", nb_rb, pusch_pdu->nrOfLayers);
+    LOG_D(NR_PHY, "ulsch coding A %d G %d mod_order %d Coderate %f\n", A, G[pusch_id], Qm, Coderate);
+    LOG_D(NR_PHY, "harq_pid %d, pusch_data.new_data_indicator %d\n", harq_pid, pusch_pdu->pusch_data.new_data_indicator);
+    從 ulsch 和 ue 中提取相關參數，如：
+    - harq_pid：HARQ (Hybrid Automatic Repeat reQuest)  ID。
+    - nb_rb：分配的資源塊 (Resource Blocks) 數量。
+    - Qm：調製階數 (Modulation Order，如 QPSK、16QAM 等)。
+
+```
+- CRC 添加：為傳輸塊添加 CRC，用於錯誤檢測。
+```
+  if (A > NR_MAX_PDSCH_TBS) {
+    crc = crc24a(harq_process->payload_AB, A) >> 8;
+    harq_process->payload_AB[A >> 3] = ((uint8_t *)&crc)[2];
+    harq_process->payload_AB[1 + (A >> 3)] = ((uint8_t *)&crc)[1];
+    harq_process->payload_AB[2 + (A >> 3)] = ((uint8_t *)&crc)[0];
+    B = A + 24;
+} else {
+    crc = crc16(harq_process->payload_AB, A) >> 16;
+    harq_process->payload_AB[A >> 3] = ((uint8_t *)&crc)[1];
+    harq_process->payload_AB[1 + (A >> 3)] = ((uint8_t *)&crc)[0];
+    B = A + 16;
+}
+**大的加24bits,小的加16bits。
+```
+
+- 分段：將大傳輸塊分割成多個小塊，符合 LDPC 編碼需求。
+
+```
+TB_parameters->Kb = nr_segmentation(harq_process->payload_AB,
+                                    harq_process->c,
+                                    B,
+                                    &harq_process->C,
+                                    &harq_process->K,
+                                    &harq_process->Z,
+                                    &harq_process->F,
+                                    harq_process->BG);
+**Input：
+payload_AB：包含 CRC 的資料。
+B：總bits數（包括 CRC）。
+BG：LDPC Base Graph，決定編碼結構。
+**Output：
+C：segment數量。
+K：每個segment的bits數。
+Z：LDPC segment的 Lifting Size。
+F：填充bits數(資料bits不到K時，為保持對齊)。
+Kb：BG中資料bits的列數。
+**分段為使ldpc正確編碼。
+ ```
+
+
+
+
+
+
+
+
 **PHY/CODING/nr_segmentation.c(由nr_dlsch_coding.c/nr_dlsch_encoding()呼叫)**
 -  分段（Segmentation）
 -  CRC 附加（CRC Attachment）呼叫crc_byte.c裡的函式
