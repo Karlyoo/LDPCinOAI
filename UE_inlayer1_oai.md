@@ -81,6 +81,7 @@ Input: MAC PDU (bytes)
 
 ##  defs_*.h 系列：模組定義與結構
 - `.h` 標頭檔主要提供結構、常數、變數與函式的宣告，配合 `.c` 檔組成 OAI Layer 1 。
+  
 | 檔案名稱 | 功能摘要 |
 |----------|-----------|
 | `defs_L1_NB_IoT.h` | NB-IoT Layer 1 定義 |
