@@ -2,7 +2,7 @@
 - [ch5 Generic functions](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#5-generic-functions)
 - [ch6 uplink](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#6-uplink)
 - [ch7 downlink](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#7-downlink)
-- [ch8 sidelink](https://github.com/Karlyoo/LDPCinOAI/edit/main/3GPP%20TR%2038.211.md#8-sidelink)
+- [ch8 sidelink](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#8-sidelink)
 
 # 4 Frame structure and physical resources 
 ## 4.1 General
