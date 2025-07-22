@@ -66,13 +66,13 @@ Input: MAC PDU (bytes)
 
 | 子資料夾                           | 功能                                      | 重點說明                                              |
 | ------------------------------ | --------------------------------------- | ------------------------------------------------- |
-| `NR_TRANSPORT/`                | 5G NR Transport Channels（DLSCH、ULSCH 等） | LDPC 編碼、Rate Matching、HARQ                        |
-| `NR_UE_TRANSPORT/`             | UE 對應的 Transport 功能                     | UE 上行的 LDPC、發射管理                                  |
+| `NR_TRANSPORT/`                | 5G NR gNB Transport  |                       |
+| `NR_UE_TRANSPORT/`             | UE 對應的 Transport                      |                                   |
 | `NR_REFSIG/`                   | NR 的 reference signal 模組                | 包含 **DMRS, PTRS, PRACH, SSB** waveform 產生與插入      |
-| `MODULATION/`                  | OFDM IFFT/FFT、調變、符號對映等                  |                   |
+| `MODULATION/`                  | OFDM IFFT/FFT、MODULATION、MAPPING                  |                   |
 | `TOOLS/`                       | 通道估計、向量運算、FFT 工具、phase noise 等          |  |
 | `INIT/`                        | Layer 1 變數初始化                           | 在 `phy_init_nr_ue()` 內呼叫                        |
-| `CODING/`                      | LDPC、Polar 編碼與測試                        |                                       |
+| `CODING/`                      | LDPC、Polar ENCODING\DECODING                        |                                       |
 | `defs.h`, `extern.h`, `vars.h` | 全域定義與變數引用                               | 模組間變數共用依賴這三個檔案架構                    |
 
 **openair1/PHY/NR_UE_TRANSPORT/** //NR UE transport channel procedures are here
