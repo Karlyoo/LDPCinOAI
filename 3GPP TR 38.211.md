@@ -4,7 +4,6 @@
 - [ch7 downlink](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#7-downlink)
 - [ch8 sidelink](https://github.com/Karlyoo/LDPCinOAI/edit/main/3GPP%20TR%2038.211.md#8-sidelink)
 
-
 # 4 Frame structure and physical resources 
 ## 4.1 General
 - Usually,Time units are defined as:
