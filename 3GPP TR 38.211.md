@@ -1,6 +1,6 @@
 - [ch4](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#4-frame-structure-and-physical-resources)
 - [ch5](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#5-generic-functions)
-- [ch6]()
+- [ch6](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#6-uplink)
 - [ch7]()
 - [ch8]()
 
