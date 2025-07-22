@@ -71,8 +71,8 @@ Input: MAC PDU (bytes)
 | `NR_REFSIG/`                   | NR 的 reference signal 模組                | 包含 **DMRS, PTRS, PRACH, SSB** waveform 產生與插入      |
 | `MODULATION/`                  | OFDM IFFT/FFT、調變、符號對映等                  |                   |
 | `TOOLS/`                       | 通道估計、向量運算、FFT 工具、phase noise 等          |  |
-| `INIT/`                        | Layer 1 變數初始化                           | 通常在 `phy_init_nr_ue()` 內呼叫                        |
-| `CODING/`                      | LDPC、Polar 編碼與測試                        | 覆蓋 TS 38.212                                      |
+| `INIT/`                        | Layer 1 變數初始化                           | 在 `phy_init_nr_ue()` 內呼叫                        |
+| `CODING/`                      | LDPC、Polar 編碼與測試                        |                                       |
 | `defs.h`, `extern.h`, `vars.h` | 全域定義與變數引用                               | 模組間變數共用依賴這三個檔案架構                    |
 
 **openair1/PHY/NR_UE_TRANSPORT/** //NR UE transport channel procedures are here
@@ -109,7 +109,7 @@ Input: MAC PDU (bytes)
 | CRC attachment            |  38.212 §5.1             |    crc24a()、crc24b().....                                            |
 | Segmentation              |  38.212 §5.2             |    nr_segmentation()                                           |
 | LDPC encoding             |  38.212 §5.2             |    LDPCencoder()                                             |
-| Scrambling               | 38.211 §7.3.1.1          | `nr_pdsch_unscrambling()`                                       |
+| Scrambling               | 38.211 §7.3.1.1          |`nr_pdsch_scrambling() `、`nr_pdsch_unscrambling()`                                       |
 | Modulation               | 38.211 §7.3.2            | `nr_dlsch_llr_level()`、`nr_rx_pdsch()`                          |
 | Layer Mapping            | 38.211 §7.3.1.2          | 內含於 `nr_rx_pdsch()` 處理中                                         |
 | Resource Mapping         | 38.211 §7.3.3            | `nr_dlsch_extract_rbs()`、`nr_dlsch_channel_compensation()`      |
