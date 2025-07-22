@@ -851,3 +851,399 @@ m_1 = (n + N_ID^(1) mod 112) mod 127.
 - PBCH/DM-RS Mapping:
    - The PBCH and its DM-RS symbol sequences are also scaled by their respective power factors.
    - They are mapped to their allocated resource elements by first increasing the subcarrier index k across the frequency domain, and then increasing the OFDM symbol index l.
+# 8 SideLink
+### 8.1.1 Overview of Physical Channels
+- Sidelink physical channels carry information from higher layers using specific resource elements.
+- Defined sidelink physical channels:
+  - Physical Sidelink Shared Channel (PSSCH)
+  - Physical Sidelink Broadcast Channel (PSBCH)
+  - Physical Sidelink Control Channel (PSCCH)
+  - Physical Sidelink Feedback Channel (PSFCH)
+
+### 8.1.2 Overview of Physical Signals
+- Sidelink physical signals are used by the physical layer but do not carry higher-layer information.
+- Defined sidelink physical signals:
+  - Demodulation Reference Signals (DM-RS)
+  - Channel-State Information Reference Signal (CSI-RS)
+  - Phase-Tracking Reference Signals (PT-RS)
+  - Sidelink Primary Synchronization Signal (S-PSS)
+  - Sidelink Secondary Synchronization Signal (S-SSS)
+
+### 8.2.2 Numerologies
+- Multiple OFDM numerologies are supported, defined by subcarrier spacing (μ) and cyclic prefix (CP), as per Table 8.2.2-1.
+- Subcarrier spacing and CP are configured via higher-layer parameters `subcarrierSpacing-SL` and `cyclicPrefix-SL`.
+- Table 8.2.2-1: Supported transmission numerologies
+  - μ = 0: 15 kHz, Normal CP
+  - μ = 1: 30 kHz, Normal CP
+  - μ = 2: 60 kHz, Normal or Extended CP
+  - μ = 3: 120 kHz, Normal CP
+
+### 8.2.3 Frame Structure
+- **Frames and Subframes**: Defined in clause 4.3.1.
+- **Slots**: Defined in clause 4.3.2 for sidelink transmission.
+
+### 8.2.4 Antenna Ports
+- Antenna ports are defined in clause 4.4.1.
+- Sidelink antenna ports:
+  - PSSCH: Starting with 1000
+  - PSCCH: Starting with 2000
+  - CSI-RS: Starting with 3000
+  - S-SS/PSBCH: Starting with 4000
+  - PSFCH: Starting with 5000
+- For DM-RS associated with PSBCH:
+  - Channel inference is valid only if the PSBCH and DM-RS symbols are within the same S-SS/PSBCH block, same slot, and same block index (clause 8.4.3.1).
+- For DM-RS associated with PSSCH:
+  - Channel inference is valid only if the PSSCH and DM-RS symbols are within the same frequency resource and slot.
+
+### 8.2.5 Resource Grid
+- Defined in clause 4.4.2.
+- Carrier bandwidth grid size (`N_grid^size,μ`) is configured by `carrierBandwidth-SL` for subcarrier spacing configuration μ.
+- Starting position (`N_grid^start,μ`) is configured by `offsetToCarrier-SL`.
+- DC subcarrier location is indicated by `txDirectCurrentLocation-SL`:
+  - Values 0–3299: Specific DC subcarrier number.
+  - Value 3300: DC subcarrier is outside the resource grid.
+  - Value 3301: DC subcarrier position is undetermined.
+  - Includes option for 7.5 kHz offset relative to the subcarrier center.
+
+## 8.3  Physical Channels
+### 8.3.1 Physical Sidelink Shared Channel (PSSCH)
+##### 8.3.1.1 Scrambling
+- For the single codeword (q = 0), the bit block b^(q)(0), ..., b^(q)(M_bit^(q)-1) is scrambled before modulation, where M_bit^(q) = M_bit,SCI2^(q) + M_bit,data^(q) 
+- Scrambling follows the pseudo-code:
+  ```
+  set i = 0
+  set k = 0
+  while i < M_bit^(q)
+      if b^(q)(i) = x // SCI placeholder bits
+          b_tilde^(q)(i) = b_tilde^(q)(i-2)
+          k = k + 1
+      else
+          b_tilde^(q)(i) = (b^(q)(i) + c(i-M_k,SCI2^(q))) mod 2
+      end if
+      i = i + 1
+  end while
+  ```
+- Scrambling sequence c(i) is defined in clause 5.2.1.
+- For 0 ≤ i < M_bit,SCI2^(q):
+  - M_k,SCI2 = 0
+  - Sequence generator initialized with c_init = 2^10 * n_ID + 1010, where n_ID = L_PSCCH mod 2^10, and L_PSCCH is the CRC decimal representation on the associated PSCCH (TS 38.212, clause 8.3.2).
+- For M_bit,SCI2^(q) ≤ i < M_bit^(q):
+  - M_k,SCI2 = M_bit,SCI2^(q)
+  - Same initialization: c_init = 2^10 * n_ID + 1010.
+
+#### 8.3.1.2 Modulation
+- Scrambled bits are modulated into complex-valued symbols d^(q)(0), ..., d^(q)(M_symb^(q)-1), where M_symb^(q) = M_symb,1^(q) + M_symb,2^(q).
+- For 0 ≤ i < M_bit,SCI2^(q): QPSK modulation (clause 5.1), M_symb,1^(q) = M_bit,SCI2^(q)/2.
+- For M_bit,SCI2^(q) ≤ i < M_bit^(q): Modulation per Table 6.3.1.2-1, M_symb,2^(q) = M_bit,data^(q)/log_2(M), where M is the modulation order.
+- Table 6.3.1.2-1: Supported modulation schemes:
+  - QPSK: Modulation order 2
+  - 16QAM: Modulation order 4
+  - 64QAM: Modulation order 6
+  - 256QAM: Modulation order 8
+
+#### 8.3.1.3 Layer Mapping
+- Layer mapping per clause 7.3.1.3 with number of layers ν ∈ {1,2}, resulting in x(i) = [x^(0)(i) ... x^(ν-1)(i)]^T, i = 0,1, ..., M_symb^layer-1.
+
+#### 8.3.1.4 Precoding
+- Vectors [x^(0)(i) ... x^(ν-1)(i)]^T are precoded per clause 6.3.1.5, with precoding matrix W as the identity matrix, M_symb^ap = M_symb^layer.
+
+#### 8.3.1.5 Mapping to Virtual Resource Blocks
+- For each antenna port, symbols y^(p)(0), ..., y^(p)(M_symb^ap-1) are scaled by amplitude factor β_DMRS^PSSCH (TS 38.213) and mapped to resource elements (k', l)_p,μ in assigned virtual resource blocks, where k' = 0 is the first subcarrier in the lowest-numbered virtual resource block.
+- Mapping in two steps:
+  1. Symbols for 2nd-stage SCI: Mapped in increasing order of k' (subcarrier index), then l (symbol index), starting from the first PSSCH symbol with DM-RS, excluding resource elements used for DM-RS, PT-RS, or PSCCH.
+  2. Non-SCI symbols: Mapped in increasing order of k', then l, starting position per TS 38.214, excluding resource elements used for 2nd-stage SCI, DM-RS, PT-RS, or CSI-RS.
+- Resource elements in the first OFDM symbol are duplicated in the immediately preceding symbol.
+
+#### 8.3.1.6 Mapping from Virtual to Physical Resource Blocks
+- Non-interleaved mapping: Virtual resource block n maps to physical resource block n.
+
+### 8.3.2 Physical Sidelink Control Channel (PSCCH)
+
+#### 8.3.2.1 Scrambling
+- Bit block b(0), ..., b(M_bit-1) is scrambled into b_tilde(0), ..., b_tilde(M_bit-1) using:
+  ```
+  b_tilde(i) = (b(i) + c(i)) mod 2
+  ```
+- Scrambling sequence c(i) per clause 5.2.1, initialized with c_init = 1010.
+
+#### 8.3.2.2 Modulation
+- Scrambled bits are QPSK modulated (clause 5.1), resulting in symbols d(0), ..., d(M_symb-1), where M_symb = M_bit/2.
+
+##### 8.3.2.3 Mapping to Physical Resources
+- Symbols d(0), ..., d(M_symb-1) are scaled by β_PSCCH (TS 38.213) and mapped to resource elements (k, l)_p,μ assigned per clause 16.4 of TS 38.213, starting with d(0), in increasing order of k, then l, on antenna port p = 2000, excluding DM-RS resource elements.
+- Resource elements in the first OFDM symbol are duplicated in the immediately preceding symbol.
+
+#### 8.3.3 Physical Sidelink Broadcast Channel (PSBCH)
+
+#### 8.3.3.1 Scrambling
+- Bit block b(0), ..., b(M_bit-1) is scrambled into b_tilde(0), ..., b_tilde(M_bit-1) using:
+  ```
+  b_tilde(i) = (b(i) + c(i)) mod 2
+  ```
+- Scrambling sequence c(i) per clause 5.2.1, initialized with c_init = n_SL^ID at the start of each S-SS/PSBCH block.
+
+#### 8.3.3.2 Modulation
+- Scrambled bits are QPSK modulated (clause 5.1.3), resulting in symbols d_PSBCH(0), ..., d_PSBCH(M_symb-1), where M_symb = M_bit/2.
+
+#### 8.3.3.3 Mapping to Physical Resources
+- Mapping to physical resources is described in clause 8.4.3.
+
+### 8.3.4 Physical Sidelink Feedback Channel (PSFCH)
+
+#### 8.3.4.1 General
+- Defines the PSFCH structure and operation.
+
+#### 8.3.4.2 PSFCH Format 0
+
+##### 8.3.4.2.1 Sequence Generation
+- Sequence y(n) is generated as:
+  ```
+  y(n) = r_(α,δ)^(n_0, l')(n), n = 0,1, ..., N_sc^RB-1
+  ```
+- r_(α,δ)^(n_0, l')(n) per clause 6.3.2.2, with:
+  - n_cs given by clause 16.3 of TS 38.213.
+  - n_0 given by clause 16.3 of TS 38.213.
+  - l is the OFDM symbol number in PSFCH transmission (l = 0 for the first symbol).
+  - l' is the slot’s OFDM symbol index corresponding to the first PSFCH symbol (TS 38.213).
+
+##### 8.3.4.2.2 Mapping to Physical Resources
+- Sequence y(n) is scaled by β_PSFCH (TS 38.213) and mapped to resource elements (k, l)_p,μ assigned per clause 16.3 of TS 38.213, starting with y(0), in increasing order of k, then l, on antenna port p = 5000.
+- Resource elements in the first OFDM symbol are duplicated in the immediately preceding symbol.
+
+## 8.4: Physical Signals
+### 8.4.1 Reference Signals
+#### 8.4.1.1 Demodulation Reference Signals for PSSCH
+##### 8.4.1.1.1 Sequence Generation
+- The DM-RS sequence r(n) for PSSCH is generated as:
+  ```
+  r(n) = (1/sqrt(2)) * (1 - 2*c(2n)) + j * (1/sqrt(2)) * (1 - 2*c(2n+1))
+  ```
+- Pseudo-random sequence c(i) is defined in clause 5.2.1.
+- Sequence generator initialized with:
+  ```
+  c_init = ((2^(N_symb^slot * n_s,f^μ + l + 1) * (2*n_ID + 1) + 2*n_ID) mod 2^31
+  ```
+  where:
+  - l: OFDM symbol number within the slot.
+  - n_s,f^μ: Slot number within a frame.
+  - n_ID = L_PSCCH mod 2^10, where L_PSCCH is the decimal representation of CRC on the PSCCH associated with PSSCH (TS 38.212, clause 7.3.2).
+
+##### 8.4.1.1.2 Mapping to Physical Resources
+- Sequence r(n) is mapped to intermediate quantity a_tilde(k',l)_p,μ per clause 6.4.1.1.3, using configuration type 1 without transform precoding.
+- Parameters w_f(k'), w_t(l'), and Δ are given by Table 8.4.1.1.2-2; r(n) per clause 8.4.1.1.1.
+- DM-RS pattern is indicated in the SCI (TS 38.212, clause 8.3.1.1).
+- Intermediate quantity a_tilde(k',l)_p,μ is precoded, scaled by β_DMRS^PSSCH (clause 8.3.1.5), and mapped to physical resources:
+  ```
+  [a(k,l)_p,μ, ..., a(k+P'-1,l)_p,μ]^T = β_DMRS^PSSCH * W * [a_tilde(k',l)_p,μ, ..., a_tilde(k'+P'-1,l)_p,μ]^T
+  ```
+  where:
+  - W: Precoding matrix (clause 8.3.1.4).
+  - {p_0, ..., p_P'-1}: Antenna ports (clause 8.3.1.4).
+  - {p_tilde_0, ..., p_tilde_P'-1}: Antenna ports (TS 38.214).
+  - Resource elements a_tilde(k',l)_p,μ are within common resource blocks allocated for PSSCH.
+- k is relative to subcarrier 0 in common resource block 0; l is relative to the start of scheduled PSSCH/PSCCH resources, including the duplicated symbol (clauses 8.3.1.5, 8.3.2.3).
+- DM-RS symbol positions (l) are given by Table 8.4.1.1.2-1, based on l_d (duration of PSSCH/PSCCH including duplicated symbol) and PSCCH duration (2 or 3 symbols).
+- Table 8.4.1.1.2-1: PSSCH DM-RS time-domain location (example entries):
+  - l_d = 9 symbols, 2-symbol PSCCH: DM-RS at symbols {3, 8} (2 DM-RS), {1, 4, 7} (3 DM-RS), {4, 8} (4 DM-RS).
+  - l_d = 13 symbols, 3-symbol PSCCH: DM-RS at {4, 10} (2 DM-RS), {1, 6, 11} (3 DM-RS), {1, 4, 7, 10} (4 DM-RS).
+- Table 8.4.1.1.2-2: Parameters for PSSCH DM-RS:
+  - Antenna port 1000: CDM group λ=0, Δ=0, w_f(k')=[+1, +1], w_t(l')=[+1, +1].
+  - Antenna port 1001: CDM group λ=0, Δ=0, w_f(k')=[+1, -1], w_t(l')=[+1, +1].
+
+#### 8.4.1.2 Phase-Tracking Reference Signals for PSSCH
+
+##### 8.4.1.2.1 Sequence Generation
+- Precoded PT-RS for subcarrier k on layer λ:
+  ```
+  r(k') = r(n) if λ = λ_0 or λ = λ_1, else 0
+  ```
+  where:
+  - Antenna ports {p_tilde_0, p_tilde_1} for PT-RS (TS 38.214, clause 8.2.3).
+  - r(n) per clause 8.4.1.1.1 at DM-RS symbol positions.
+
+##### 8.4.1.2.2 Mapping to Physical Resources
+- PT-RS transmitted only in resource blocks used for PSSCH, if enabled (TS 38.214).
+- PT-RS mapped to resource elements:
+  ```
+  [a(k,l)_p,μ, ..., a(k+P'-1,l)_p,μ]^T = β_DMRS^PSSCH * W * [r(k'), ..., r(k'+P'-1)]^T
+  k = 4m + 2*k_0 + Δ
+  ```
+  where:
+  - l is within PSSCH transmission symbols.
+  - Resource elements (k, l) not used for CSI-RS, PSCCH, or PSSCH DM-RS.
+  - k' and Δ correspond to {p_tilde_0, ..., p_tilde_P'-1}.
+- Time indices l for PT-RS:
+  1. Initialize i = 0, l_ref = 0.
+  2. If interval max(l_ref + (i-1)*L_PT-RS + 1, l_ref) overlaps with DM-RS symbol:
+     - Set i = 1, l_ref to DM-RS symbol index, repeat.
+  3. Add l_ref + i*L_PT-RS to PT-RS time indices.
+  4. Increment i, repeat while l_ref + i*L_PT-RS is within PSSCH allocation.
+  - L_PT-RS ∈ {1, 2, 4} (TS 38.214, clause 8.4.3).
+- Subcarrier mapping:
+  ```
+  k = k_ref^RE + (i/L_PT-RS + k_ref^RB) * N_sc^RB
+  k_ref^RB = 0 if n_RB mod L_PT-RS = 0, else n_ID mod (n_RB mod L_PT-RS)
+  ```
+  where:
+  - i = 0, 1, 2, ...
+  - k_ref^RE per Table 8.4.1.2.2-1 (e.g., DM-RS port 0: {0, 2, 6, 8} for offsets).
+  - n_RB: Number of scheduled resource blocks.
+  - L_PT-RS ∈ {2, 4} (TS 38.214).
+  - n_ID = L_PSCCH mod 2^10 (TS 38.212, clause 7.3.2).
+- PT-RS not mapped to resource elements with PSCCH or PSCCH DM-RS (puncturing applied).
+- No overlap with sidelink CSI-RS.
+
+#### 8.4.1.3 Demodulation Reference Signals for PSCCH
+
+##### 8.4.1.3.1 Sequence Generation
+- DM-RS sequence r(n) for PSCCH:
+  ```
+  r(n) = (1/sqrt(2)) * (1 - 2*c(2n)) + j * (1/sqrt(2)) * (1 - 2*c(2n+1))
+  ```
+- Pseudo-random sequence c(i) per clause 5.2.1, initialized with:
+  ```
+  c_init = ((2^(N_symb^slot * n_s,f^μ + l + 1) * (2*n_ID + 1) + n_ID) mod 2^31
+  ```
+  where:
+  - l: OFDM symbol number within the slot.
+  - n_s,f^μ: Slot number within a frame.
+  - n_ID ∈ {0, 1, ..., 65535} from higher-layer parameter sl-DMRS-ScrambleID.
+
+##### 8.4.1.3.2 Mapping to Physical Resources
+- Sequence r(n) scaled by β_DMRS^PSCCH (TS 38.213) and mapped to resource elements (k, l)_p,μ starting with r(0) on antenna port p = 2000:
+  ```
+  a(k,l)_p,μ = β_DMRS^PSCCH * w_f,k(n') * r(m)
+  k = m*N_sc^RB + 4*n' + 1
+  n' = 0, 1, 2
+  m = 0, 1, ...
+  ```
+- Conditions:
+  - Resource elements within PSCCH allocation.
+- w_f,k(n') per Table 8.4.1.3.2-1 (e.g., n'=0: w_f,k=[1, 1, 1]; n'=1: w_f,k=[1, e^(j*2π/3), e^(-j*2π/3)]).
+- n' randomly selected by UE from {0, 1, 2}.
+- k relative to subcarrier 0 in common resource block 0; l is the OFDM symbol number in the slot.
+
+#### 8.4.1.4 Demodulation Reference Signals for PSBCH
+
+##### 8.4.1.4.1 Sequence Generation
+- DM-RS sequence r(n) for S-SS/PSBCH block:
+  ```
+  r(n) = (1/sqrt(2)) * (1 - 2*c(2n)) + j * (1/sqrt(2)) * (1 - 2*c(2n+1))
+  ```
+- Pseudo-random sequence c(i) per clause 5.2.1, initialized with:
+  ```
+  c_init = n_SL^ID
+  ```
+  at the start of each S-SS/PSBCH block.
+
+##### 8.4.1.4.2 Mapping to Physical Resources
+- Mapping described in clause 8.4.3.
+
+#### 8.4.1.5 CSI Reference Signals
+
+##### 8.4.1.5.1 General
+- Supports 1 or 2 antenna ports (ν ∈ {1, 2}).
+- Density ρ = 1 supported; zero-power CSI-RS not supported.
+- Amplitude scaling factor β_CSIRS per clause 8.2.1 of TS 38.214.
+
+##### 8.4.1.5.2 Sequence Generation
+- CSI-RS sequence r(n):
+  ```
+  r(n) = (1/sqrt(2)) * (1 - 2*c(2n)) + j * (1/sqrt(2)) * (1 - 2*c(2n+1))
+  ```
+- Pseudo-random sequence c(i) per clause 5.2.1, initialized with:
+  ```
+  c_init = ((2^(N_symb^slot * n_s,f^μ + l + 1) * (2*n_ID + 1) + n_ID) mod 2^31
+  ```
+  where:
+  - n_s,f^μ: Slot number within a radio frame.
+  - l: OFDM symbol number within a slot.
+  - n_ID = L_PSCCH mod 2^10, where L_PSCCH is the CRC decimal representation for SCI on PSCCH (TS 38.212, clause 7.3.2).
+
+##### 8.4.1.5.3 Mapping to Physical Resources
+- Mapping per clause 7.4.1.5.3, with exceptions:
+  - Only 1 or 2 antenna ports supported.
+  - Density ρ = 1.
+  - No zero-power CSI-RS.
+
+### 8.4.2 Synchronization Signals
+
+#### 8.4.2.1 Physical-Layer Sidelink Identities
+- 672 unique sidelink identities:
+  ```
+  n_SL^ID = n_ID,1^SL + 336*n_ID,2^SL
+  ```
+  where n_ID,1^SL ∈ {0, 1, ..., 335}, n_ID,2^SL ∈ {0, 1}.
+- Divided into two sets:
+  - id_net: n_SL^ID = 0, 1, ..., 335
+  - id_oon: n_SL^ID = 336, 337, ..., 671
+
+#### 8.4.2.2 Sidelink Primary Synchronization Signal (S-PSS)
+
+##### 8.4.2.2.1 Sequence Generation
+- S-PSS sequence d_S-PSS(n):
+  ```
+  d_S-PSS(n) = 1 - 2*x(m)
+  m = n + 22 + 43*n_ID,2^SL mod 127
+  0 ≤ n < 127
+  ```
+  where:
+  ```
+  x(i+7) = (x(i+4) + x(i)) mod 2
+  [x(6) x(5) x(4) x(3) x(2) x(1) x(0)] = [1 1 1 0 1 1 0]
+  ```
+
+##### 8.4.2.2.2 Mapping to Physical Resources
+- Mapping described in clause 8.4.3.
+
+#### 8.4.2.3 Sidelink Secondary Synchronization Signal (S-SSS)
+
+##### 8.4.2.3.1 Sequence Generation
+- S-SSS sequence d_S-SSS(n):
+  ```
+  d_S-SSS(n) = [1 - 2*x_0((n + m_0) mod 127)] * [1 - 2*x_1((n + m_1) mod 127)]
+  m_0 = 15*floor(n_ID,SL/112) + 5*n_ID,1^SL
+  m_1 = n_ID,SL mod 112
+  0 ≤ n < 127
+  ```
+  where:
+  ```
+  x_0(i+7) = (x_0(i+4) + x_0(i)) mod 2
+  x_1(i+7) = (x_1(i+1) + x_1(i)) mod 2
+  [x_0(6) x_0(5) x_0(4) x_0(3) x_0(2) x_0(1) x_0(0)] = [0 0 0 0 0 0 1]
+  [x_1(6) x_1(5) x_1(4) x_1(3) x_1(2) x_1(1) x_1(0)] = [0 0 0 0 0 0 1]
+  ```
+
+##### 8.4.2.3.2 Mapping to Physical Resources
+- Mapping described in clause 8.4.3.
+
+### 8.4.3 S-SS/PSBCH Block
+
+#### 8.4.3.1 Time-Frequency Structure of an S-SS/PSBCH Block
+- **Time Domain**:
+  - S-SS/PSBCH block consists of N_symb^S-SSB OFDM symbols (0 to N_symb^S-SSB-1):
+    - Normal CP: N_symb^S-SSB = 13
+    - Extended CP: N_symb^S-SSB = 11
+  - First OFDM symbol is the first in the slot.
+- **Frequency Domain**:
+  - 132 contiguous subcarriers (0 to 131).
+  - k and l represent frequency and time indices within the S-SS/PSBCH block.
+- **Antenna Port**:
+  - Uses antenna port 4000 for S-PSS, S-SSS, PSBCH, and DM-RS.
+  - Same cyclic prefix length and subcarrier spacing for all signals.
+- **Resource Mapping** (Table 8.4.3.1-1):
+  - S-PSS: Symbols 1, 2; subcarriers 2, 3, ..., 127, 128.
+  - S-SSS: Symbols 3, 4; subcarriers 2, 3, ..., 127, 128.
+  - Set to zero: Symbols 1, 2, 3, 4; subcarriers 0, 1, 129, 130, 131.
+  - PSBCH: Symbols 0, 5, 6, ..., N_symb^S-SSB-1; subcarriers 0, 1, ..., 131.
+  - DM-RS for PSBCH: Symbols 0, 5, 6, ..., N_symb^S-SSB-1; subcarriers 0, 4, 8, ..., 128.
+
+##### 8.4.3.1.1 Mapping of S-PSS within an S-SS/PSBCH Block
+- S-PSS sequence d_S-PSS(0), ..., d_S-PSS(126) scaled by β_S-PSS (TS 38.213) and mapped to resource elements (k, l)_p,μ in increasing order of k for symbols l per Table 8.4.3.1-1.
+
+##### 8.4.3.1.2 Mapping of S-SSS within an S-SS/PSBCH Block
+- S-SSS sequence d_S-SSS(0), ..., d_S-SSS(126) scaled by β_S-SSS (TS 38.213) and mapped to resource elements (k, l)_p,μ in increasing order of k for symbols l per Table 8.4.3.1-1.
+
+##### 8.4.3.1.3 Mapping of PSBCH and DM-RS within an S-SS/PSBCH Block
+- PSBCH symbols d_PSBCH(0), ..., d_PSBCH(M_symb-1) scaled by β_PSBCH (TS 38.213) and mapped to resource elements (k, l)_p,μ not used for DM-RS, in increasing order of k, then l, per Table 8.4.3.1-1.
+- DM-RS symbols r(0), ..., r(33*(N_symb^S-SSB-4)-1) scaled by β_PSBCH^DM-RS (TS 38.213) and mapped to resource elements (k, l)_p,μ in increasing order of k, then l, per Table 8.4.3.1-1.
