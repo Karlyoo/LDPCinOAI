@@ -75,6 +75,28 @@ Input: MAC PDU (bytes)
 | `CODING/`                      | LDPC、Polar ENCODING\DECODING                        |                                       |
 | `defs.h`, `extern.h`, `vars.h` | 全域定義與變數引用                               | 模組間變數共用依賴這三個檔案架構                    |
 
+
+
+---
+
+##  defs_*.h 系列：模組定義與結構
+- `.h` 標頭檔主要提供結構、常數、變數與函式的宣告，配合 `.c` 檔組成 OAI Layer 1 。
+| 檔案名稱 | 功能摘要 |
+|----------|-----------|
+| `defs_L1_NB_IoT.h` | NB-IoT Layer 1 定義 |
+| `defs_RU.h` | Remote Unit（O-RU）相關定義 |
+| `defs_UE.h` | LTE UE 的 PHY 層定義 |
+| `defs_common.h` | 4G/5G 通用定義（不含 NR 特有內容） |
+| `defs_gNB.h` | 5G gNB  |
+| `defs_nr_UE.h` | 5G NR UE 的 PHY  |
+| `defs_nr_common.h` | 5G NR 共通部分定義 |
+| `defs_nr_slUE.h` | Sidelink UE 定義（含 PSBCH） |
+
+
+
+
+
+
 **openair1/PHY/NR_UE_TRANSPORT/** //NR UE transport channel procedures are here
 | 檔案名稱             | 功能                                 |
 | ---------------- | ---------------------------------- |
