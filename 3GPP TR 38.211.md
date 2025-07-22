@@ -1,8 +1,8 @@
-[ch4](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#4-frame-structure-and-physical-resources)
-[ch5](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#5-generic-functions)
-[ch6]()
-[ch7]()
-[ch8]()
+- [ch4](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#4-frame-structure-and-physical-resources)
+- [ch5](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#5-generic-functions)
+- [ch6]()
+- [ch7]()
+- [ch8]()
 
 
 # 4 Frame structure and physical resources 
