@@ -1,4 +1,4 @@
-[ch4]
+[ch4](https://github.com/Karlyoo/LDPCinOAI/blob/main/3GPP%20TR%2038.211.md#4-frame-structure-and-physical-resources)
 [ch5]
 [ch6]
 [ch7]
