@@ -11,17 +11,12 @@ Input: MAC PDU (bytes)
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ Physical-layer HARQ processing │
-│ Output: encoded bits         │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
 │ Segmentation (nr_segmentation.c) │
 │ Output: LDPC segments (bits) │
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ LDPC 編碼 (nr_dlsch_coding.c ) │
+│ LDPC encode (nr_dlsch_coding.c ) │
 │ Output: encoded bits         │
 └────────────┬─────────────────┘
              ↓
@@ -36,12 +31,12 @@ Input: MAC PDU (bytes)
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ 調變 (Modulation: QPSK, 16QAM) │
+│ Modulation: QPSK, 16QAM      │
 │ Output: complex symbols (IQ) │
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ Resource Grid Mapping │
+│ layer  Mapping               │
 │ Output: complex symbols (IQ) │
 └────────────┬─────────────────┘
              ↓
@@ -56,7 +51,7 @@ Input: MAC PDU (bytes)
 └────────────┬─────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ 模擬通道:  │
+│ simulate channel   :         │
 │ Input: TX samples            │
 │ Output: RX samples           │
 └────────────┬─────────────────┘
