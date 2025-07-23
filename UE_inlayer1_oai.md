@@ -107,8 +107,8 @@ Input: MAC PDU (bytes)
 | `nr_dlsch_demodulation.c`  | UE接收下行資料後，解映射、通道補償、算LLR，接到解碼部分  | 
 | `nr_initial_sync.c`                 | UE進行初始同步，找基地台   | 
 | `nr_initial_sync_sl.c`              | SideLink模式下，UE進行初始同步             | 
-| `nr_ulsch_decoding.c`        | gNB 解碼 PUSCH（LDPC 解碼與 CRC 驗證） | 
-| `nr_ulsch_demodulation.c`    | 頻域通道估計、MMSE 等化與符號提取           | 
+| `nr_dlsch_decoding.c`        | downlink 的資料解碼 | 
+| `nr_dlsch_demodulation.c`    | downlink 的資料解調           | 
 | `nr_prach.c`        | 產生 PRACH 前導碼與接收匹配過濾器 | 
 | `nr_psbch_rx.c`        | UE接收、解碼（Physical Sidelink Broadcast Channel, PSBCH）訊號 | 
 | `nr_psbch_tx.c` | UE發送（Physical Sidelink Broadcast Channel, PSBCH）訊號    |
@@ -119,7 +119,7 @@ Input: MAC PDU (bytes)
 | `nr_ulsch_coding.c` | 實現ULSCH編碼過程，它包含了 CRC 、SEGEMENT、LDPC Encode和rate matching    | 
 | `nr_ulsch_ue.c`             | 處理 UE 在ULSCH的所有相關工作，如編碼及調變 | 
 | `nr_transport_proto_ue.h`        | UE實現PHY中與DLSCH、ULSCH、PUCCH）、PBCH、PRACH以及 PSBCH等相關的處理功能。                           | 
-| `nr_transport_ue.h` | UE端和傳輸層相關的資料結構。用於在PHY 內部以及PHY與更高層 (MAC 層) 之間傳遞資料和配置資訊，HARQ 和 ULSCH/DLSCH相關的資訊。 | 
+| `nr_transport_ue.h` | UE端和傳輸層相關的資料結構。 | 
 | `pucch_nr.c`       | 處理 UCI（如 SR, HARQ-ACK, CSI）                | 
 | `pucch_nr.h`                  |   定義UE端和PUCCH相關的數據結構、函數，用於實現UCI的傳輸。              | 
 | `srs_modulation_nr.c`                    | 實現UE端的 SRS（Sounding Reference Signal，探測參考信號)生成和處理功能 |
