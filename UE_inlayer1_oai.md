@@ -129,12 +129,11 @@ Input: MAC PDU (bytes)
 | ------------------------ | ------------------------ | --------------------------------------------------------------- |
 | CRC attachment            |  38.212 §5.1             |    crc24a()、crc24b().....                                            |
 | Segmentation              |  38.212 §5.2             |    nr_segmentation()                                           |
-| LDPC encoding             |  38.212 §5.2             |    LDPCencoder()                                             |
-| Scrambling               | 38.211 §6.3.1.1          |`nr_pdsch_scrambling() `、`nr_pdsch_unscrambling()`                                       |
-| Modulation               | 38.211 §6.3.2            | `nr_dlsch_llr_level()`、`nr_rx_pdsch()`                          |
-| Layer Mapping            | 38.211 §6.3.1.2          | 內含於 `nr_rx_pdsch()` 處理中                                         |
-| Resource Mapping         | 38.211 §6.3.3            | `nr_dlsch_extract_rbs()`、`nr_dlsch_channel_compensation()`      |
-| Channel Estimation       | 38.211 §6.4.1.1.2 (DMRS) | `nr_pbch_channel_estimation()`、`dlsch_channel_estimation()` |
+| LDPC encoding             |  38.212 §5.2             |    LDPCencoder() 、nr_ulsch_encoding()                                            |
+| Scrambling               | 38.211 §6.3.1.1          |`nr_pusch_codeword_scrambling() `                                       |
+| Modulation               | 38.211 §6.3.2            | `nr_modulation()`                          |
+| Layer Mapping            | 38.211 §6.3.1.2          | `nr_ue_layer_mapping`                                         |
+| Channel Estimation       | 38.211 §6.4.1.1.2 (DMRS) | `nr_pbch_channel_estimation()` |
 | LLR Calculate            | 38.212 attachment A      | `nr_dlsch_qpsk_llr()`, `nr_dlsch_16qam_llr()` ...                |
 
 **openair1/PHY/NR_UE_TRANSPORT/nr_ulsch_ue.c**
