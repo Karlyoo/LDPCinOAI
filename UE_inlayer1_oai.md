@@ -116,7 +116,7 @@ Input: MAC PDU (bytes)
 | `nr_ue_rf_helpers.c` | 配置射頻卡（RF Card）的頻率和增益。 | 
 | `nr_ulsch_coding.c` | 實現ULSCH編碼過程，它包含了 CRC 、SEGEMENT、LDPC Encode和rate matching    | 
 | `nr_ulsch_ue.c`             | 處理 UE 在ULSCH的所有相關工作，如編碼及調變 | 
-| `nr_transport_proto_ue.h`        | UE實現PHY中與DLSCH、ULSCH、PUCCH）、PBCH、PRACH以及 PSBCH等相關的處理功能。                           | 
+| `nr_transport_proto_ue.h`        | 內含宣告多個函式，實現PHY中與DLSCH、ULSCH、PUCCH、PBCH、PRACH以及 PSBCH等相關的處理功能。                           | 
 | `nr_transport_ue.h` | UE端和傳輸層相關的資料結構。 | 
 | `pucch_nr.c`       | 處理 UCI（如 SR, HARQ-ACK, CSI）                | 
 | `pucch_nr.h`                  |   定義UE端和PUCCH相關的數據結構、函數，用於實現UCI的傳輸。              | 
