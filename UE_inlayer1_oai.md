@@ -56,6 +56,43 @@ Input: MAC PDU (bytes)
 │ Output: RX samples           │
 └────────────┬─────────────────┘
              ↓
+
+┌──────────────────────────────┐
+│ OFDM FFT + CP remove │
+│ Input: RX samples            │
+│ Output: frequency-domain symbols │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ channel_estimation
+│ Output: equalized symbols   │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Demodulation + LLR calculate │
+│ Output: soft bits (LLRs)    │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ Rate Dematching              │
+│ Input: LLRs                  │
+│ Output: code blocks          │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ LDPC decoding (nr_dlsch_decoding.c) │
+│ Output: decoded bits         │
+└────────────┬─────────────────┘
+             ↓
+┌──────────────────────────────┐
+│ CRC CHECK + merge segments        │
+│ Output: MAC SDU (bytes)      │
+└──────────────────────────────┘
+
+
+
+
+
 ```
 
 
