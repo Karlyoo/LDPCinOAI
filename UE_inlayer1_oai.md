@@ -107,8 +107,6 @@ Input: MAC PDU (bytes)
 | `nr_dlsch_demodulation.c`  | UE接收下行資料後，解映射、通道補償、算LLR，接到解碼部分  | 
 | `nr_initial_sync.c`                 | UE進行初始同步，找基地台   | 
 | `nr_initial_sync_sl.c`              | SideLink模式下，UE進行初始同步             | 
-| `nr_dlsch_decoding.c`        | downlink 的資料解碼 | 
-| `nr_dlsch_demodulation.c`    | downlink 的資料解調           | 
 | `nr_prach.c`        | 產生 PRACH 前導碼與接收匹配過濾器 | 
 | `nr_psbch_rx.c`        | UE接收、解碼（Physical Sidelink Broadcast Channel, PSBCH）訊號 | 
 | `nr_psbch_tx.c` | UE發送（Physical Sidelink Broadcast Channel, PSBCH）訊號    |
