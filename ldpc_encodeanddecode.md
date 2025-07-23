@@ -46,7 +46,7 @@ LDPC File list
 | `ldpc_encode_parity_check.c`   | Uses mod-2 operations, bit shifts, and cyclic shifts to construct the final codeword. | |
 | `nr_rate_matching.c`     | 碼率匹配               | `nr_rate_matching_ldpc()`              |
 | `nr_interleaving.c`      | 比特交錯               | `nr_interleaving_ldpc()`               |
-| `nrLDPC_coding_segment_encoder.c`       | 經過分段處理的程式會送進此程式，執行LDPC encoding、Rate matching、Interleaving | `nrLDPC_coding_encoder()`|
+| `nrLDPC_coding_segment_encoder.c`       | 經過分段處理的程式會送進此程式，執行LDPC encoding | `nrLDPC_coding_encoder()`|
 | `nrLDPC_coding_segment_encoder.c` | 為每個 CB 建立編碼任務      | `nrLDPC_launch_TB_encoding()`  |
 |  `nrLDPC_coding_segment_encoder.c`            | 進行單個 8-block 的編碼處理 | `ldpc8blocks()`                                 |
 |`ldpc_encode_parity_check.c`|執行 parity 計算|`encode_parity_check_part_optim()`|
