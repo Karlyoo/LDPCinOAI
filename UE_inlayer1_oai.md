@@ -113,20 +113,25 @@ Input: MAC PDU (bytes)
 
 ##  defs_*.h 系列：模組定義與結構
 - `.h` 標頭檔主要提供結構、常數、變數與函式的宣告，配合 `.c` 檔組成 OAI Layer 1 。
+
   
-| 檔案名稱 | 功能摘要 |
-|----------|-----------|
-| `defs_L1_NB_IoT.h` | NB-IoT Layer 1 定義 |
-| `defs_RU.h` | Remote Unit（O-RU）相關定義 |
-| `defs_UE.h` | LTE UE 的 PHY 層定義 |
-| `defs_common.h` | 4G/5G 通用定義（不含 NR 特有內容） |
-| `defs_gNB.h` | 5G gNB  |
-| `defs_nr_UE.h` | 5G NR UE 的 PHY  |
-| `defs_nr_common.h` | 5G NR 共通部分定義 |
-| `defs_nr_slUE.h` | Sidelink UE 定義（含 PSBCH） |
+| 功能                         |  規範                                                                         |  OAI 對應函式 / 檔案                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------| -------------------------------------------------------------------- |
+| **Channel Estimation**            | TS 38.211 §7.4.1.1（DM-RS）                                                       | `nr_pbch_channel_estimation.c`<br>`nr_pdsch_channel_estimation.c`    |
+| **Demodulation + LLR calculate**    | TS 38.211 §7.3.1.4（modulation）<br>TS 38.212 §7.1.4（LLR calculate）           | `nr_dlsch_llr_computation.c`<br>`nr_qpsk_llr.c`, `nr_qam16_llr.c` |
+| **Rate Dematching**                 | TS 38.212 §5.4.1（DL）                                                            | `nr_rate_matching_ldpc.c`<br>`nr_dlsch_decoding.c`                   |
+| **LDPC decoding**                  | TS 38.212 §5.3.2                                                                | `nrLDPC_decoder.c`<br>`ldpc_decode.c`<br>呼叫於 `nr_dlsch_decoding.c`   |
+| **CRC check + merge Segments**     | TS 38.212 §5.1（CRC）<br>§5.2.2（Code block segment合併）                             | `crc_byte.c`, `check_crc.c`<br>合併在 `nr_dlsch_decoding.c` 中處理         |
 
 
 
+
+功能	規範	OAI 實作對應函式 / 檔案
+Channel Estimation	TS 38.211 §7.4.1.1（DM-RS）	nr_pbch_channel_estimation.cnr_pdsch_channel_estimation.c
+Demodulation + LLR 	TS 38.211 §7.3.1.4（modulation）TS 38.212 §7.1.4（LLR ）	"nr_dlsch_llr_computation.cnr_qpsk_llr.c, nr_qam16_llr.c"
+Rate Dematching	TS 38.212 §5.4.1（DL）	nr_rate_matching_ldpc.cnr_dlsch_decoding.c
+LDPC  Decoding	TS 38.212 §5.3.2	nrLDPC_decoder.cldpc_decode.c呼叫於 nr_dlsch_decoding.c
+CRC check + merge Segments 	TS 38.212 §5.1（CRC）§5.2.2（Code block segment合併）	"crc_byte.c, check_crc.c合併在 nr_dlsch_decoding.c 中處理"
 
 
 
