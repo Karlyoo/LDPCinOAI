@@ -6,7 +6,7 @@
 Input: MAC PDU (bytes)                                          
         ↓
 ┌──────────────────────────────┐
-│ CRC 附加 (crc_byte.c)         │
+│ CRC attachment (crc_byte.c)         │
 │ Output: bits + CRC           │
 └────────────┬─────────────────┘
              ↓
