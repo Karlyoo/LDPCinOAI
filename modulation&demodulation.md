@@ -140,11 +140,12 @@ nr_rx_pdsch()
 │
 ├─ nr_dlsch_channel_level()           ← 只在整個 PDSCH 首個 symbol 時執行，用來計算每個 layer+antenna 的平均通道強度，用於後續 scaling 與合併。
 │
-├─ nr_dlsch_channel_compensation()    ← Equalization 核心：頻域符號乘上通道共軛值 + magnitude 計算 (|H|²) 並分為 QAM scaling → output 是 rxdataF_comp[]：補償後的頻域資料，供後續處理使用。
+├─ nr_dlsch_channel_compensation()    ← Equalization 核心：頻域符號乘上通道共軛值 + magnitude 計算 (|H|²) 並分為 QAM scaling →
+|                                        output 是 rxdataF_comp[]：補償後的頻域資料，供後續處理使用。
 │
 ├─ nr_dlsch_detection_mrc()           ← 若使用 MRC，這邊進行多天線合併（非 spatial multiplexing）
 │
-├─ modulation-specific LLR 計算：根據 modulation 呼叫
+├─ modulation LLR 計算：根據 modulation方式 呼叫
 │   ├─ nr_dlsch_qpsk_llr()
 │   ├─ nr_dlsch_qam16_llr()
 │   └─ nr_dlsch_qam64_llr()
