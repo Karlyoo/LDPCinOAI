@@ -1,118 +1,74 @@
 # UE Tx and RX
 ## Architecture
 ```
-【 Uplink: UE TX (模擬傳送端)】
+【 Uplink: UE TX (模擬傳送端) 】              【 Downlink: UE RX (模擬接收端) 】
 
-Input: MAC PDU (bytes)                                          
-        ↓
+Input: MAC PDU (bytes)                      ┌──────────────────────────────┐
+        ↓                                   │ OFDM FFT + CP remove         │
+┌──────────────────────────────┐            │ Input: RX samples            │
+│ CRC attachment (crc_byte.c)  │            │ Output: freq-domain symbols  │
+│ Output: bits + CRC           │            └────────────┬─────────────────┘
+└────────────┬─────────────────┘                         ↓
+             ↓                            ┌──────────────────────────────┐
+┌──────────────────────────────┐         │ channel_estimation           │
+│ Segmentation (nr_segmentation.c)│       │ Output: equalized symbols    │
+│ Output: LDPC segments (bits)  │         └────────────┬─────────────────┘
+└────────────┬─────────────────┘                         ↓
+             ↓                            ┌──────────────────────────────┐
+┌──────────────────────────────┐         │ Demodulation + LLR calculate │
+│ LDPC encode (nr_dlsch_coding.c)│       │ Output: soft bits (LLRs)     │
+│ Output: encoded bits          │         └────────────┬─────────────────┘
+└────────────┬─────────────────┘                         ↓
+             ↓                            ┌──────────────────────────────┐
+┌──────────────────────────────┐         │ Rate Dematching              │
+│ Rate Matching + Interleaving │         │ Input: LLRs                  │
+│ Output: RM bits              │         │ Output: code blocks          │
+└────────────┬─────────────────┘         └────────────┬─────────────────┘
+             ↓                                                    ↓
+┌──────────────────────────────┐         ┌──────────────────────────────┐
+│ Scrambling                   │         │ LDPC decoding                │
+│ Output: RM bits              │         │ (nr_dlsch_decoding.c)        │
+└────────────┬─────────────────┘         │ Output: decoded bits         │
+             ↓                           └────────────┬─────────────────┘
+┌──────────────────────────────┐                      ↓
+│ Modulation: QPSK, 16QAM       │       ┌──────────────────────────────┐
+│ Output: complex symbols (IQ) │       │ CRC CHECK + merge segments    │
+└────────────┬─────────────────┘       │ Output: MAC SDU (bytes)       │
+             ↓                         └──────────────────────────────┘
 ┌──────────────────────────────┐
-│ CRC attachment (crc_byte.c)         │
-│ Output: bits + CRC           │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Segmentation (nr_segmentation.c) │
-│ Output: LDPC segments (bits) │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ LDPC encode (nr_dlsch_coding.c ) │
-│ Output: encoded bits         │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Rate Matching + Interleaving │
-│ Output: RM bits              │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Scrambling                   │
-│ Output: RM bits              │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Modulation: QPSK, 16QAM      │
+│ Layer Mapping                │
 │ Output: complex symbols (IQ) │
 └────────────┬─────────────────┘
              ↓
-┌──────────────────────────────┐
-│ layer  Mapping               │
-│ Output: complex symbols (IQ) │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
+┌────────────────────────────────────────┐
 │ Insert DMRS (UE uplink reference signal) │
-│ Output: complex symbols (IQ) │
-└────────────┬─────────────────┘
+│ Output: complex symbols (IQ)             │
+└────────────┬────────────────────────────┘
+             ↓
+┌────────────────────────────────────────┐
+│ DFT-s-OFDM IFFT + CP (ofdm_mod.c)      │
+│ Output: time-domain samples            │
+└────────────┬────────────────────────────┘
              ↓
 ┌──────────────────────────────┐
-│ DFT-s-OFDM IFFT + CP 加入 (ofdm_mod.c) │
-│ Output: time-domain samples │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ simulate channel   :         │
+│ Simulate channel             │
 │ Input: TX samples            │
 │ Output: RX samples           │
-└────────────┬─────────────────┘
-             ↓
-
-┌──────────────────────────────┐
-│ OFDM FFT + CP remove │
-│ Input: RX samples            │
-│ Output: frequency-domain symbols │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ channel_estimation
-│ Output: equalized symbols   │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Demodulation + LLR calculate │
-│ Output: soft bits (LLRs)    │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ Rate Dematching              │
-│ Input: LLRs                  │
-│ Output: code blocks          │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ LDPC decoding (nr_dlsch_decoding.c) │
-│ Output: decoded bits         │
-└────────────┬─────────────────┘
-             ↓
-┌──────────────────────────────┐
-│ CRC CHECK + merge segments        │
-│ Output: MAC SDU (bytes)      │
 └──────────────────────────────┘
-
-
-
-
 
 ```
 
-
+## openairinterface5g/openair1/PHY
 | 子資料夾                           | 功能                                      | 重點說明                                              |
 | ------------------------------ | --------------------------------------- | ------------------------------------------------- |
 | `NR_TRANSPORT/`                | 5G NR gNB Transport  |                       |
-| `NR_UE_TRANSPORT/`             | UE 對應的 Transport                      |                                   |
+| `NR_UE_TRANSPORT/`             | UE Transport 的函數                      |                                   |
 | `NR_REFSIG/`                   | NR 的 reference signal 模組                | 包含 **DMRS, PTRS, PRACH, SSB** waveform 產生與插入      |
 | `MODULATION/`                  | OFDM IFFT/FFT、MODULATION、MAPPING                  |                   |
 | `TOOLS/`                       | 通道估計、向量運算、FFT 工具、phase noise 等          |  |
 | `INIT/`                        | Layer 1 變數初始化                           | 在 `phy_init_nr_ue()` 內呼叫                        |
-| `CODING/`                      | LDPC、Polar ENCODING\DECODING                        |                                       |
+| `CODING/`                      | LDPC、Polar ENCODING\DECODING、CRC、SEGEMENT                        |                                       |
 | `defs.h`, `extern.h`, `vars.h` | 全域定義與變數引用                               | 模組間變數共用依賴這三個檔案架構                    |
-
-
-
----
-
-##  defs_*.h 系列：模組定義與結構
-- `.h` 標頭檔主要提供結構、常數、變數與函式的宣告，配合 `.c` 檔組成 OAI Layer 1 。
 
   
 | 功能                         |  規範                                                                         |  OAI 對應函式 / 檔案                                                  |
@@ -124,18 +80,7 @@ Input: MAC PDU (bytes)
 | **CRC check + merge Segments**     | TS 38.212 §5.1（CRC）<br>§5.2.2（Code block segment合併）                             | `crc_byte.c`, `check_crc.c`<br>合併在 `nr_dlsch_decoding.c` 中處理         |
 
 
-
-
-功能	規範	OAI 實作對應函式 / 檔案
-Channel Estimation	TS 38.211 §7.4.1.1（DM-RS）	nr_pbch_channel_estimation.cnr_pdsch_channel_estimation.c
-Demodulation + LLR 	TS 38.211 §7.3.1.4（modulation）TS 38.212 §7.1.4（LLR ）	"nr_dlsch_llr_computation.cnr_qpsk_llr.c, nr_qam16_llr.c"
-Rate Dematching	TS 38.212 §5.4.1（DL）	nr_rate_matching_ldpc.cnr_dlsch_decoding.c
-LDPC  Decoding	TS 38.212 §5.3.2	nrLDPC_decoder.cldpc_decode.c呼叫於 nr_dlsch_decoding.c
-CRC check + merge Segments 	TS 38.212 §5.1（CRC）§5.2.2（Code block segment合併）	"crc_byte.c, check_crc.c合併在 nr_dlsch_decoding.c 中處理"
-
-
-
-**openair1/PHY/NR_UE_TRANSPORT/** //NR UE transport channel procedures are here
+### openair1/PHY/NR_UE_TRANSPORT/ //NR UE transport channel procedures are here
 | 檔案名稱             | 功能                                 |
 | ---------------- | ---------------------------------- |
 | `nr_dci.c`       | 處理 DCI 格式（如 format 1\_0/1\_1）與資訊打包 |
@@ -160,7 +105,8 @@ CRC check + merge Segments 	TS 38.212 §5.1（CRC）§5.2.2（Code block segment
 | `srs_modulation_nr.c`                    | 實現UE端的 SRS（Sounding Reference Signal，探測參考信號)生成和處理功能 |
 | `srs_modulation_nr.h`                    | 定義UE端和SRS相關的數據結構、函數   | 
 
-## 對應3GPP規範及OAI函式
+## UPLINK
+### 對應3GPP規範及OAI函式
 
 | 功能                       | 3GPP 規格章節                | OAI 對應函式                                                        |
 | ------------------------ | ------------------------ | --------------------------------------------------------------- |
@@ -173,6 +119,26 @@ CRC check + merge Segments 	TS 38.212 §5.1（CRC）§5.2.2（Code block segment
 | Channel Estimation       | 38.211 §6.4.1.1.2 (DMRS) | `nr_pbch_channel_estimation()` |
 | LLR Calculate            | 38.212 attachment A      | `nr_dlsch_qpsk_llr()`, `nr_dlsch_16qam_llr()` ...                |
 
+##### openairinterface5g/openair1/PHY/CODING
+**crc_byte.c**
+- 定義24或其他bit數的錯誤碼
+  <img width="889" height="253" alt="image" src="https://github.com/user-attachments/assets/184d8388-9041-4d15-8cf6-1f072b9850fe" />
+  
+- 定義插入錯誤碼的函數
+  
+  <img width="749" height="345" alt="image" src="https://github.com/user-attachments/assets/f59d8d42-349b-402c-aae0-2f8081bc944f" />
+
+##### openairinterface5g/openair1/PHY/CODING
+**nr_segmentation.c**
+- 依照38.212 §5.2規範做資料分割，使ldpc能做編碼
+
+##### LDPC Encoding
+[ldpc_encoding](https://github.com/Karlyoo/LDPCinOAI/blob/main/ldpc_encodeanddecode.md#ldpc-encoder-code-in-oai-5gnr)
+
+##### Modulation
+[modulation](https://github.com/Karlyoo/LDPCinOAI/blob/main/modulation%26demodulation.md#modulation)
+
+  
 **openair1/PHY/NR_UE_TRANSPORT/nr_ulsch_ue.c**
 實現 5G NR UE 的上行共享通道 (ULSCH) 的PHY傳輸流程
 - 資料準備：
@@ -197,7 +163,5 @@ CRC check + merge Segments 	TS 38.212 §5.1（CRC）§5.2.2（Code block segment
   以上函式定義包含在modulation.c程式內
 - OFDM 調製：
   應用頻域旋轉，執行 IFFT 和循環前綴添加，生成時域信號（nr_ue_pusch_common_procedures）。輸出到 txdata。
-## LDPC Encoding
-[ldpc_encoding](https://github.com/Karlyoo/LDPCinOAI/blob/main/ldpc_encodeanddecode.md#ldpc-encoder-code-in-oai-5gnr)
-## Modulation
-[modulation](https://github.com/Karlyoo/LDPCinOAI/blob/main/modulation%26demodulation.md#modulation)
+
+
