@@ -91,6 +91,29 @@ Input: MAC PDU (bytes)
 ```
 *** Tx端流程跟OAI基本差不多
 
+## lib/phy/upper
+
+upper/<br>
+├── channel coding/ <br>
+│   ├── ldpc/       <br>
+│   ├── polar/           <br>
+│   └── crc calculate    <br>
+├── channel modulation/ <br>
+|   ├── modulation(qam、qpsk)       <br>
+│   └── demodulation(qam、qpsk)           <br>
+├── channel process/ 包含PUCCH、PUSCH等通道模擬程式，以及SSB及UCI等RS等設定 <br>
+|   ├── pucch/、pdcch/      <br>
+│   |── pusch/、pduch/          <br>
+│   └── ssb/ 、uci/          <br>
+├──  uplink_processor_pool_impl.cpp  <br>
+├──  downlink_processor_pool_impl.cpp  <br>
+└── upper_phy_impl.cpp <br>
+
+
+
+
+
+
 ## Building up srsRAN environment
 According to online sources, starting from version 22.x, srsRAN has shifted to primarily using a CLI (command-line interface) for managing the UE and gNB, moving away from a GUI-based approach.
 
