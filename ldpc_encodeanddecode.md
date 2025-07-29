@@ -1,43 +1,20 @@
-LDPC Encoder Code in OAI 5GNR
-===
-
-
-**Introduction**
----
-* Before user's data is sent from UE to gNB, it
-goes through  **physical layer**  processing, including:
-
-1.CRC attachment
-  
-2.Code block segmentation
-
-**3.LDPC encoding** 
-
-4.Rate matching
-
-5.Modulation (e.g., QPSK, 16QAM)
-
-6.Layer mapping, precoding
-
-7.OFDM modulation
-
-8.Transmission over the air
-
-* **What is LDPC?**
+# LDPC  in OAI 5GNR
+## Introduction
   * Low-Density Parity-Check Code(LDPC),it uses a mathematical matrix to check for and correct errors. technique called **iterative message passing**,
   * LDPC codes are defined by a parity-check matrix H, which consists of variable nodes and check nodes . The variable nodes send their  LLR (log-likelihood ratio) messages to the check nodes. The check nodes perform XOR operations to verify the parity constraints. This iterative message passing continues for about 10 to 50 iterations until the codeword satisfies all parity checks.
   * In 5G, LDPC codes have a specially structured parity-check matrix (PCM), which allows for efficient decoding algorithms. [38.212](https://www.etsi.org/deliver/etsi_ts/138200_138299/138212/17.01.00_60/ts_138212v170100p.pdf) page.11 provides a deeper understanding of the decoding process.
 
 LDPC File list
 ---
-| 檔案                  | 角色             | 模組層級                    | 實際內容                                          | 主要用途             |
-| ------------------- | -------------- | ----------------------- | --------------------------------------------- | ----------------------------- |
-| `nr_dlsch_coding.c` | **LDPC 編碼主邏輯** | PHY Layer               | segmentation, CRC, LDPC encode, rate matching | 負責將 TB → bitstream     |
-| `nr_dlsch.c`        | **下行調變/傳送邏輯**  | PHY Layer      | 調變、PDSCH 映射、DMRS/PTRS 資料插入       | 把 encoded bits 變成 OFDM symbols |
-| `dlschsim.c` | **功能測試用例**     | Simulation Tool  | 建立簡化 gNB/UE 結構，模擬 `nr_dlsch_encoding()` 整體流程  | 驗證功能與除錯               |
-| `dlsim.c`  | **大型模擬框架**  | System-level Simulation | 整合 MAC/PHY/調變/通道環境，建立全鏈路模擬   | 驗證整體系統通聯能力與參數效能        |
+| 檔案                  | 角色             | 模組層級                    | 實際內容                                   | 
+| ------------------- | -------------- | ----------------------- | --------------------------------------------- | 
+| `nr_ulsch_coding.c` | **LDPC 編碼主程式(上行)** | PHY Layer               | segmentation, CRC, LDPC encode, rate matching | 
+| `nr_dlsch_coding.c` | **LDPC 編碼主程式(下行)** | PHY Layer               | segmentation, CRC, LDPC encode, rate matching | 
 
-
+#### openair1/PHY/CODING/nrLDPC_coding
+**nrLDPC_coding_segment**
+- nrLDPC_coding_segment_encoder.c
+- nr_rate_matching.c
 
  
 | Directory Path         | Description |函式|
