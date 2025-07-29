@@ -11,10 +11,6 @@ LDPC File list
 | `nr_ulsch_coding.c` | **LDPC 編碼主程式(上行)** | PHY Layer               | segmentation, CRC, LDPC encode, rate matching | 
 | `nr_dlsch_coding.c` | **LDPC 編碼主程式(下行)** | PHY Layer               | segmentation, CRC, LDPC encode, rate matching | 
 
-#### openair1/PHY/CODING/nrLDPC_coding
-**nrLDPC_coding_segment**
-- nrLDPC_coding_segment_encoder.c
-- nr_rate_matching.c
 
  
 | Directory Path         | Description |函式|
@@ -110,17 +106,15 @@ Kb：BG中資料bits的列數。
  ```
 
 
-
-
-
-
-
-
-**PHY/CODING/nr_segmentation.c(由nr_dlsch_coding.c/nr_dlsch_encoding()呼叫)**
--  分段（Segmentation）
--  CRC 附加（CRC Attachment）呼叫crc_byte.c裡的函式
--  Z、K 等參數計算
--  F 補零數量（若有）
+#### openair1/PHY/CODING/nrLDPC_coding
+**nrLDPC_coding_segment**
+- nrLDPC_coding_segment_encoder.c
+- nr_rate_matching.c
+- 由nr_dlsch_coding.c/nr_dlsch_encoding()呼叫)**
+   -  分段（Segmentation）
+   -  CRC 附加（CRC Attachment）呼叫crc_byte.c裡的函式
+   -  Z、K 等參數計算
+   -  F 補零數量（若有）
    
 ldpc_encoder.c
 ---
