@@ -348,6 +348,139 @@ Imagine you’re using a 5G phone, and the network (base station) needs to know 
    - Semi-persistent CSI-RS is active from activation to deactivation.
    - Periodic CSI-RS is active from configuration to release.
 
+### 5.2.2  Channel state information
+#### 5.2.2.1  Channel quality indicator (CQI)
+- Indicates the downlink channel quality and is used by the gNB to determine the modulation and coding scheme (MCS).
+- Based on the channel quality measured from the CSI-RS, using the corresponding modulation + code rate + TBS, the PDSCH transport block error rate (TBLER) must not exceed the following thresholds:
+  - Table 1 or Table 2: TBLER ≤ 0.1 
+  - Table 3: TBLER ≤ 0.00001 (very strict, primarily used in high-reliability eMBB/mMTC scenarios)
+TABLE 1:
+| CQI index | Modulation | Code rate (x1024) | Spectral Efficiency |
+| --------- | ---------- | ----------------- | ------------------- |
+| 0         | -          | -                 | out of range        |
+| 1–6       | QPSK       | 78–602            | 0.15–1.18           |
+| 7–9       | 16QAM      | 378–616           | 1.48–2.41           |
+| 10–15     | 64QAM      | 466–948           | 2.73–5.55           |
+
+TABLE 2:
+| CQI index | Modulation | Code rate | Efficiency |
+| --------- | ---------- | --------- | ---------- |
+| 0         | -          | -         | -          |
+| 1–3       | QPSK       |           |            |
+| 4–6       | 16QAM      |           |            |
+| 7–11      | 64QAM      |           |            |
+| 12–15     | 256QAM     | 711–948   | 5.55–7.41  |
+
+TABLE 3:
+| CQI index | Modulation | Code rate | Efficiency |
+| --------- | ---------- | --------- | ---------- |
+| 0         | -          | -         | -          |
+| 1–8       | QPSK       | 30–602    | 0.06–1.18  |
+| 9–11      | 16QAM      | 378–616   | 1.48–2.41  |
+| 12–15     | 64QAM      | 466–772   | 2.73–4.52  |
+
+```
+           +--------------------+
+           | Downlink CSI-RS    |
+           | (channel estimate) |
+           +---------+----------+
+                     |
+                     v
+           +----------------------------------------+
+           | UE calculate CQI index                 |
+           | Accoding to the code rate / TBLER       |
+           |to choose the proper modulation(qpsk...)|
+           +----------------------------------------+
+                     |
+                     v
+           | return CQI to  gNB (uplink)|
+
+```
+#### 5.2.2.2 Precoding matrix indicator (PMI)
+- The Precoding Matrix Indicator (PMI) is a parameter used by the UE (user equipment) in its CSI report to indicate the optimal precoding matrix to the gNodeB (5G base station). Precoding matrices are used in MIMO (Multiple Input Multiple Output) systems to optimize signal transmission and improve data rates or reliability by selecting the appropriate precoding matrix.
+##### 5.2.2.2.1 Type I Single-Panel Codebook
+- The Type I Single-Panel Codebook, defined in 3GPP 5G NR, is a set of precoding matrices suitable for single-panel antenna arrays. This codebook provides standardized precoding matrices for different numbers of antenna ports (2, 4, 8, 12, 16, 24, and 32) and layers (1 to 8). The UE selects the most appropriate precoding matrix based on measured channel conditions and provides feedback to the base station via the PMI.
+  
+**PMI Configuration for 2 Antenna Ports ({3000, 3001})**
+1. Configuration Parameters
+  - Codebook Type: The UE is configured via the higher-layer parameter codebookType as 'typeI-SinglePanel'.
+  - Restriction Bitmap: The higher-layer parameter twoTX-CodebookSubsetRestriction is a 6-bit bitmap (bit sequence) represented as a5, a4, a3, a2, a1, a0, where:
+    - a0 is the least significant bit (LSB) and a5 is the most significant bit (MSB).
+    - Bits a0 to a3 correspond to codebook indices 0 to 3 for single-layer (ν=1) transmission.
+    - Bits a4 and a5 correspond to codebook indices 0 and 1 for two-layer (ν=2) transmission.
+    - A bit value of 0 indicates that the UE is prohibited from reporting the PMI associated with the corresponding precoding matrix.
+2. Codebook (Table 5.2.2.2.1-1)
+- Table 5.2.2.2.1-1 defines the codebook for CSI reporting with 2 antenna ports in both single-layer and two-layer cases, specifically as follows:
+  - Single layer (ν=1):
+    - Codebook index 0: (1/√2) [1, 1]^T
+    - Codebook index 1: (1/√2) [1, j]^T
+    - Codebook index 2: (1/√2) [1, -1]^T
+    - Codebook index 3: (1/√2) [1, -j]^T
+  - Two layers (ν=2):
+    - Codebook index 0: (1/√2) [[1, 1], [1, -1]]
+    -  Codebook index 1: (1/√2) [[1, 1], [j, -j]]
+**PMI Configuration for 4~32 Antenna Ports ({3000, 3001... 3031})**
+  1. Codebook Type:  Also configured as 'typeI-SinglePanel'.
+- Number of Layers:
+  - For 1 layer (ν = 1), the PMI consists of three codebook indices: i1_1, i1_2, i2.
+  - For 2 to 4 layers (ν in {2, 3, 4}), the PMI consists of four codebook indices: i1_1, i1_2, i1_3, i2.
+  - For 5 to 8 layers (ν in {5, 6, 7, 8}), the PMI structure is more complex and involves multiple index combinations.
+- Composite Codebook Index:
+  
+<img width="384" height="94" alt="image" src="https://github.com/user-attachments/assets/c1ff6a5d-6642-4fcf-b243-34e005d8999c" />
+
+- Number of Antenna Ports:
+  - Determined by PCSI-RS = 2 * N1 * N2, where N1 and N2 are the number of rows and columns in the antenna array, configured via higher-layer parameters n1 and n2.
+- Restriction Bitmap:
+  - The n1-n2 bitmap is defined as a sequence a_{Ac-1}, ..., a1, a0, where Ac = N1 * O1 * N2 * O2. This bitmap restricts the available precoding matrices.
+  - For v in {3, 4} and PCSI-RS = 16, 24, or 32, the mapping between bits and precoders becomes more complex, involving multiple index associations.
+- Layer Restriction:
+  - The 8-bit bitmap typeI-SinglePanel-ri-Restriction (r7, ..., r0) limits the PMI and RI reports. When bit r_i = 0, reporting of precoders associated with nu = i + 1 layers is prohibited.
+- CQI Computation Restriction:
+  - When reportQuantity is set to 'cri-RI-i1-CQI', the bitmap typeI-SinglePanel-codebookSubsetRestriction-i2 restricts the randomly selected precoder used for CQI calculation.
+
+2. Codebook Structure
+- The codebook is defined in Tables 5.2.2.2.1-5 to 5.2.2.2.1-12, with separate structures for 1 to 8 layers, as described below:
+  - 1 Layer (Table 5.2.2.2.1-5):
+     - The PMI consists of indices i1_1, i1_2, i2.
+     - The precoding matrix is in the form:
+
+<img width="287" height="77" alt="image" src="https://github.com/user-attachments/assets/3c9c8f6c-1e2e-4d2e-8e0b-5a185e56a6a2" />
+ 
+     - v_{l,m} is the beam selection vector based on N1, N2, O1, O2
+     - phi_n = exp(j * pi * n / 2) is the phase coefficient
+
+  - 2 Layers (Table 5.2.2.2.1-6):
+      - Supports two modes (codebookMode = 1 or 2).
+      - The precoding matrix is:
+
+<img width="439" height="87" alt="image" src="https://github.com/user-attachments/assets/6d488f78-fef6-4253-abc7-5cca667b5229" />
+
+      - Where k1 and k2 are derived from i1_3 (see Table 5.2.2.2.1-3).
+
+- 3 to 4 Layers (Tables 5.2.2.2.1-7, 5.2.2.2.1-8):
+  - Different structures are defined depending on whether PCSI-RS < 16 or >= 16. These include more beam and phase combinations.
+  - For example, a 4-layer codebook may look like:
+
+<img width="621" height="89" alt="image" src="https://github.com/user-attachments/assets/30e8e36b-c774-453e-8e7a-3d479985e719" />
+
+- 5 to 8 Layers (Tables 5.2.2.2.1-9 to 5.2.2.2.1-12):
+  - For higher layer numbers, the codebook includes more beam combinations and phase adjustments, suitable for large-scale MIMO scenarios.
+
+3. Parameter Definitions
+- Beam Selection Parameters:
+
+<img width="476" height="213" alt="image" src="https://github.com/user-attachments/assets/34ef7f3a-6dad-47be-ba77-fc7197805150" />
+
+- Antenna Port Configurations:
+  - Table 5.2.2.2.1-2 defines supported combinations of (N1, N2) and (O1, O2). For example:
+  - 4 ports: (N1, N2) = (2,1), (O1, O2) = (4,1)
+  - 32 ports: (N1, N2) = (4,4), (8,2), (16,1)
+
+## openairinterface5g/openair1/PHY/NR_UE_TRANSPORT/csi_rx.c 
+
+
+
 
 
 
