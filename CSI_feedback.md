@@ -354,7 +354,9 @@ Imagine you’re using a 5G phone, and the network (base station) needs to know 
 - Based on the channel quality measured from the CSI-RS, using the corresponding modulation + code rate + TBS, the PDSCH transport block error rate (TBLER) must not exceed the following thresholds:
   - Table 1 or Table 2: TBLER ≤ 0.1 
   - Table 3: TBLER ≤ 0.00001 (very strict, primarily used in high-reliability eMBB/mMTC scenarios)
+    
 TABLE 1:
+
 | CQI index | Modulation | Code rate (x1024) | Spectral Efficiency |
 | --------- | ---------- | ----------------- | ------------------- |
 | 0         | -          | -                 | out of range        |
