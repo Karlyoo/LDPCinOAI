@@ -1,3 +1,9 @@
+-[5.2.1](https://github.com/Karlyoo/LDPCinOAI/edit/main/CSI_feedback.md#521-organized-notes-channel-state-information-csi-framework)
+
+-[5.2.2](https://github.com/Karlyoo/LDPCinOAI/edit/main/CSI_feedback.md#522--channel-state-information)
+
+-[5.2.3]
+
 # CSI (channel state information)
 ## TS 38.214 
 - CSI (Channel State Information): Information a UE (User Equipment, like a smartphone) sends to the base station (gNodeB) about the channel’s quality, such as signal strength or interference. This helps the base station optimize data transmission.
@@ -478,6 +484,199 @@ TABLE 3:
   - Table 5.2.2.2.1-2 defines supported combinations of (N1, N2) and (O1, O2). For example:
   - 4 ports: (N1, N2) = (2,1), (O1, O2) = (4,1)
   - 32 ports: (N1, N2) = (4,4), (8,2), (16,1)
+##### 5.2.2.2.2 Type I Multi-Panel Codebook
+- **Purpose**: Defines the Type I Multi-Panel Codebook for CSI reporting, used for precoding matrix indicator (PMI) and rank indicator (RI) reporting with multiple antenna panels.
+- **Antenna Ports**: Supports 8, 16, or 32 CSI-RS antenna ports:
+  - 8 ports: {3000, 3001, …, 3007}
+  - 16 ports: {3000, 3001, …, 3015}
+  - 32 ports: {3000, 3001, …, 3031}
+- **Configuration**: Enabled when the higher-layer parameter `codebookType` is set to `'typeI-MultiPanel'`.
+
+## Key Parameters
+1. **Panel and Antenna Configuration**:
+   - Configured via higher-layer parameter `ng-n1-n2`, defining:
+     - **Ng**: Number of antenna panels.
+     - **N1**: Number of antenna elements in the first dimension (horizontal).
+     - **N2**: Number of antenna elements in the second dimension (vertical).
+   - Number of CSI-RS ports: **PCSI-RS = 2 × Ng × N1 × N2**.
+   - Supported configurations and oversampling factors (O1, O2) are listed in **Table 5.2.2.2.2-1**.
+
+2. **Table 5.2.2.2.2-1: Supported Configurations**
+   | **PCSI-RS** | **(Ng, N1, N2)** | **(O1, O2)** |
+   |-------------|-------------------|--------------|
+   | 8           | (2, 2, 1)        | (4, 1)      |
+   | 16          | (2, 4, 1)        | (4, 1)      |
+   | 16          | (4, 2, 1)        | (4, 1)      |
+   | 16          | (2, 2, 2)        | (4, 4)      |
+   | 32          | (2, 8, 1)        | (4, 1)      |
+   | 32          | (4, 4, 1)        | (4, 1)      |
+   | 32          | (2, 4, 2)        | (4, 4)      |
+   | 32          | (4, 2, 2)        | (4, 4)      |
+
+3. **Codebook Modes**:
+   - **Ng = 2**: `codebookMode` can be set to `'1'` or `'2'`.
+   - **Ng = 4**: `codebookMode` must be set to `'1'`.
+
+4. **Bitmap Parameters**:
+   - **ng-n1-n2**:
+     - Forms a bit sequence **a0, a1, ..., aAc-1** (LSB: a0, MSB: aAc-1).
+     - **Ac = N1 × O1 × N2 × O2**: Total number of bits.
+     - Bit **a_m + l*N2*O2** corresponds to precoders based on **v_l,m** (l = 0 to N1*O1-1, m = 0 to N2*O2-1).
+     - Bit value **0** prohibits PMI reporting for associated precoders.
+   - **ri-Restriction**:
+     - Forms a bit sequence **r0, r1, r2, r3** (LSB: r0, MSB: r3).
+     - If **ri = 0** (i ∈ {0, 1, 2, 3}), PMI and RI reporting are prohibited for precoders with **υ = i + 1** layers.
+
+5. **PMI Indices**:
+   - PMI is represented by indices **i1** and **i2**, where:
+     - **i1 = [i1,1, i1,2, i1,3, i1,4]** for 2, 3, or 4 layers.
+     - **i1 = [i1,1, i1,2, i1,4]** for 1 layer.
+     - **υ** is the associated RI value (number of layers).
+   - For **codebookMode = '1'**:
+     - **i1,4** = [i1,4,1] (Ng = 2) or [i1,4,1, i1,4,2, i1,4,3] (Ng = 4).
+   - For **codebookMode = '2'** (Ng = 2):
+     - **i1,4 = [i1,4,1, i1,4,2]** and **i2 = [i2,0, i2,1, i2,2]**.
+   - **i2,1 Restriction**: UE uses **i2,1 = 0** and does not report **i2,1** if **N2 = 1**.
+
+6. **Mapping for i1,3**:
+   - For 2-layer reporting: Mapping of **i1,3** to **k1** and **k2** is given in **Table 5.2.2.2.1-3**.
+   - For 3-layer and 4-layer reporting: Mapping of **i1,3** to **k1** and **k2** is given in **Table 5.2.2.2.2-2**.
+
+7. **Table 5.2.2.2.2-2: Mapping of i1,3 to k1 and k2 (3-layer and 4-layer CSI reporting)**
+   | **i1,3** | **N1=2, N2=1** | **N1=2, N2=2** | **N1=4, N2=1** | **N1=8, N2=1** | **N1=2, N2=2** | **N1=4, N2=2** |
+   |----------|----------------|----------------|----------------|----------------|----------------|----------------|
+   |          | k1, k2         | k1, k2         | k1, k2         | k1, k2         | k1, k2         | k1, k2         |
+   | 0        | O1, 0          | O1, 0          | O1, 0          | O1, 0          | O1, 0          | O1, 0          |
+   | 1        | 2O1, 0         | 2O1, 0         | 2O1, 0         | 2O1, 0         | O2, 0          | O2, 0          |
+   | 2        | 3O1, 0         | 3O1, 0         | 3O1, 0         | O1, O2         | O1, O2         | O1, O2         |
+   | 3        | 4O1, 0         | 2O1, 0         | -              | -              | -              | -              |
+
+## Codebook Elements
+- **Quantities Used**:
+  - **φ_n**: Phase shift, defined as **e^(jπn/2)**.
+  - **p_a**: Power scaling, defined as **e^(jπp/2)** or **e^(-jπp/2)** based on Ng.
+  - **n_b**: Beam index.
+  - **u_m**: Beamforming vector in the second dimension.
+  - **v_l,m**: Beamforming vector for indices l, m, defined as:
+    - **u_m = [1, e^(j2πm/(O2*N2)), ..., e^(j2πm(N2-1)/(O2*N2))]ᵀ / √N2** (if N2 > 1).
+    - **u_m = 1** (if N2 = 1).
+    - **v_l,m = [u_m, e^(j2πl/(O1*N1))u_m, ..., e^(j2πl(N1-1)/(O1*N1))u_m]ᵀ / √N1**.
+- **Precoder Matrices**:
+  - For **Ng = 2 or 4, codebookMode = 1**:
+    - **W_l,m,p,n^(1,Ng)**: Combines beamforming vectors **v_l,m** with phase shifts **φ_n** and power scaling **p**, scaled by **1/√(PCSI-RS)**.
+  - For **Ng = 2, codebookMode = 2**:
+    - **W_l,m,p,n^(2,Ng)**: Similar structure but includes additional parameters **a** and **b** for beam combinations.
+  - Detailed formulas for **W_l,m,p,n^(1,Ng)** and **W_l,m,p,n^(2,Ng)** are provided for Ng = 2 and Ng = 4.
+
+## Codebooks for 1-4 Layers
+- Defined in **Tables 5.2.2.2.2-3 to 5.2.2.2.2-6** for 1, 2, 3, and 4 layers, respectively.
+- **Table 5.2.2.2.2-3: 1-layer CSI Reporting**:
+  - **codebookMode = 1 (Ng = 2 or 4)**:
+    - Indices: **i1,1**, **i1,2** (0 to N1*O1-1, 0 to N2*O2-1), **i1,4,q** (0 to 3), **i2** (0 or 1).
+    - Precoder: **W_i1,1,i1,2,i1,4,i2^(1) = W_l,m,p,n^(1,Ng)**.
+  - **codebookMode = 2 (Ng = 2)**:
+    - Indices: **i1,1**, **i1,2**, **i1,4,q** (0 to 3), **i2,0**, **i2,q** (0 or 1).
+    - Precoder: **W_i1,1,i1,2,i1,4,i2^(1) = W_l,m,p,n^(2,Ng)**.
+- **Table 5.2.2.2.2-4: 2-layer CSI Reporting**:
+  - **codebookMode = 1 (Ng = 2 or 4)**:
+    - Indices: **i1,1**, **i1,2**, **i1,4,q**, **i2**.
+    - Precoder: **W_i1,1,i1,1+k1,i1,2,i1,2+k2,i1,4,i2^(2)** combines **W_l,m,p,n^(1,Ng)** and **W_l',m',p,n^(1,Ng)**.
+  - **codebookMode = 2 (Ng = 2)**:
+    - Same indices, precoder uses **W_l,m,p,n^(2,Ng)** and **W_l',m',p,n^(2,Ng)**.
+  - Mapping from **i1,3** to **k1, k2** per Table 5.2.2.2.1-3.
+- **Table 5.2.2.2.2-5: 3-layer CSI Reporting**:
+  - Similar structure to 2-layer, using **W_l,m,p,n^(1,Ng)** or **W_l,m,p,n^(2,Ng)** for three precoders.
+  - Mapping from **i1,3** to **k1, k2** per Table 5.2.2.2.2-2.
+- **Table 5.2.2.2.2-6: 4-layer CSI Reporting**:
+  - Similar structure, combining four precoders.
+  - Mapping from **i1,3** to **k1, k2** per Table 5.2.2.2.2-2.
+
+---
+
+## Summary
+- The Type I Multi-Panel Codebook supports 1-4 layer CSI reporting for 8, 16, or 32 antenna ports, with configurations defined by **Ng**, **N1**, **N2**, and oversampling factors **O1**, **O2**.
+- Two codebook modes ('1' and '2') are available, with mode '2' restricted to **Ng = 2**.
+- PMI and RI reporting are controlled by bitmaps (**ng-n1-n2**, **ri-Restriction**) to enable or disable specific precoders or layers.
+- Precoder matrices are constructed using beamforming vectors, phase shifts, and power scaling, with detailed formulas for each mode and panel configuration.
+- The codebooks and mappings are detailed in tables for precise index assignments and precoder construction.
+
+---
+
+These notes provide a clear and structured summary of the Type I Multi-Panel Codebook, focusing on configurations, parameters, and codebook structures. Let me know if you need further clarification or additional details!
+
+### 5.2.2.3 NZP CSI-RS
+
+#### Key Parameters for NZP CSI-RS Configuration
+The following parameters are configured via `NZP-CSI-RS-Resource`, `CSI-ResourceConfig`, and `NZP-CSI-RS-ResourceSet` for each CSI-RS resource, assuming non-zero transmission power.
+
+1. **nzp-CSI-RS-ResourceId**
+   - Defines the unique identity of the CSI-RS resource configuration.
+
+2. **periodicityAndOffset**
+   - Specifies the periodicity and slot offset for periodic or semi-persistent CSI-RS.
+   - All CSI-RS resources in a set share the **same periodicity**, but slot offsets may vary across resources.
+
+3. **resourceMapping**
+   - Defines:
+     - **Number of ports** (`nrofPorts`): Allowable values per Clause 7.4.1.5 of TS 38.211.
+     - **CDM-type**: Code Division Multiplexing values and pattern (per Clause 7.4.1.5 of TS 38.211).
+     - **OFDM symbol and subcarrier occupancy** within a slot (per Clause 7.4.1.5 of TS 38.211).
+     - **Density**: CSI-RS frequency density per PRB for each port.
+       - For density = 1/2, defines odd/even PRB allocation relative to the common resource block grid.
+       - Includes CSI-RS PRB offset for density = 1/2.
+   - Allowable values for density and ports are defined in Clause 7.4.1.5 of TS 38.211.
+
+4. **powerControlOffset**
+   - Assumed ratio of **PDSCH EPRE** (Energy Per Resource Element) to **NZP CSI-RS EPRE** for CSI feedback.
+   - Range: **[-8, 15] dB**, with **1 dB step size**.
+
+5. **powerControlOffsetSS**
+   - Assumed ratio of **NZP CSI-RS EPRE** to **SS/PBCH block EPRE**.
+
+6. **BWP-Id** (in `CSI-ResourceConfig`)
+   - Specifies the **Bandwidth Part (BWP)** where the CSI-RS resource is located.
+
+7. **repetition** (in `NZP-CSI-RS-ResourceSet`)
+   - Indicates whether the CSI-RS resources in the set are transmitted with the **same downlink spatial domain transmission filter**.
+   - Configurable only when the higher-layer parameter `reportQuantity` (linked to the CSI-RS resource set) is set to:
+     - `'cri-RSRP'`
+     - `'cri-SINR'`
+     - `'none'`
+   - Associated with Clause 5.1.6.1.2 of TS 38.214.
+
+8. **qcl-InfoPeriodicCSI-RS**
+   - References a **TCI-State** indicating Quasi-Co-Location (QCL) source RS(s) and QCL type(s).
+   - If the TCI-State references an RS with **'QCL-TypeD'**, the RS can be:
+     - An **SS/PBCH block** in the same or different CC/DL BWP.
+     - A **periodic CSI-RS resource** in the same or different CC/DL BWP.
+
+9. **trs-Info** (in `NZP-CSI-RS-ResourceSet`)
+   - Indicates that the antenna port with the same port index across NZP CSI-RS resources in the set is identical (per Clause 5.1.6.1.1 of TS 38.214).
+   - Configurable when:
+     - No reporting setting is configured, or
+     - `reportQuantity` (linked to the CSI-RS resource set) is set to `'none'`.
+
+#### Resource Set Constraints
+- All CSI-RS resources within a set must have:
+  - The **same density**.
+  - The **same number of ports** (`nrofPorts`).
+  - **Exception**: NZP CSI-RS resources used for interference measurement may have different density or ports.
+- All CSI-RS resources in a set must have:
+  - The **same starting Resource Block (RB)**.
+  - The **same number of RBs**.
+  - The **same CDM-type**.
+
+#### Bandwidth and Resource Block Configuration
+- Configured via the `CSI-FrequencyOccupation` IE in `CSI-RS-ResourceMapping`:
+  - **nrofRBs**: Number of RBs (integer multiple of 4 RBs).
+  - **startingRB**: Initial Common Resource Block (CRB) index (integer multiple of 4 RBs, referenced to CRB 0 on the common resource block grid).
+- Bandwidth and initial CRB index determination (per Clause 7.4.1.5 of TS 38.211):
+  - If `startingRB` < `N_BWP^start`, then initial CRB index = `N_BWP^start`.
+  - Otherwise, initial CRB index = `startingRB`.
+- If `nrofRBs` > (`N_BWP^size` + `N_BWP^start` - `startingRB`), the bandwidth is assumed to be:
+  - `nrofRBs` = `N_BWP^size` + `N_BWP^start` - `startingRB`.
+
+
 
 ## openairinterface5g/openair1/PHY/NR_UE_TRANSPORT/csi_rx.c 
 Estimating channel conditions and reporting metrics like :
