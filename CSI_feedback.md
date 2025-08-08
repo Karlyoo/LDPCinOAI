@@ -591,18 +591,167 @@ TABLE 3:
   - Similar structure, combining four precoders.
   - Mapping from **i1,3** to **k1, k2** per Table 5.2.2.2.2-2.
 
+Below is a concise and organized set of notes based on the provided text from **3GPP TS 38.214, Section 5.2.2.2.3** regarding the **Type II Codebook** for CSI reporting. The notes summarize key configurations, parameters, and codebook definitions for antenna ports and layers, structured for clarity and ease of understanding.
+
+---
+
+# Notes on Type II Codebook (3GPP TS 38.214, Section 5.2.2.2.3)
+
+## Overview
+- **Purpose**: Defines the Type II Codebook for CSI reporting, used for precoding matrix indicator (PMI) and rank indicator (RI) reporting with high-resolution beamforming.
+- **Antenna Ports**: Supports 4, 8, 12, 16, 24, or 32 CSI-RS antenna ports:
+  - 4 ports: {3000, 3001, …, 3003}
+  - 8 ports: {3000, 3001, …, 3007}
+  - 12 ports: {3000, 3001, …, 3011}
+  - 16 ports: {3000, 3001, …, 3015}
+  - 24 ports: {3000, 3001, …, 3023}
+  - 32 ports: {3000, 3001, …, 3031}
+- **Configuration**: Enabled when the higher-layer parameter `codebookType` is set to `'typeII'`.
+- **Reference**: 3GPP TS 38.214 version 16.2.0, Release 16 (ETSI TS 138 214 V16.2.0, July 2020).
+
+## Key Parameters
+1. **Antenna Configuration**:
+   - Configured via higher-layer parameter `n1-n2-codebookSubsetRestriction`, defining:
+     - **N1**: Number of antenna elements in the first dimension (horizontal).
+     - **N2**: Number of antenna elements in the second dimension (vertical).
+   - Number of CSI-RS ports: **PCSI-RS = 2 × N1 × N2**.
+   - Supported configurations and oversampling factors (O1, O2) are listed in **Table 5.2.2.2.1-2**.
+
+2. **Number of Beams (L)**:
+   - Configured via higher-layer parameter `numberOfBeams`.
+   - **L = 2** when PCSI-RS = 4.
+   - **L ∈ {2, 3, 4}** when PCSI-RS > 4.
+
+3. **Phase Alphabet Size (NPSK)**:
+   - Configured via higher-layer parameter `phaseAlphabetSize`.
+   - **NPSK ∈ {4, 8}** (determines the granularity of phase coefficients).
+
+4. **Subband Amplitude**:
+   - Configured via higher-layer parameter `subbandAmplitude`:
+     - `'true'`: Enables subband-specific amplitude coefficients.
+     - `'false'`: Disables subband-specific amplitude coefficients.
+
+5. **RI Restriction**:
+   - UE shall not report **RI > 2** (maximum 2 layers).
+   - Bitmap parameter `typeII-RI-Restriction` forms a bit sequence **r0, r1** (LSB: r0, MSB: r1).
+     - If **ri = 0** (i ∈ {0, 1}), PMI and RI reporting are prohibited for precoders with **υ = i + 1** layers.
+
+## PMI Indices
+- Each PMI corresponds to indices **i1** and **i2**, where **υ** is the associated RI value (1 or 2 layers).
+- **i1**:
+  - **υ = 1**: **i1 = [i1,1, i1,2, i1,3,1, i1,4,1]**.
+  - **υ = 2**: **i1 = [i1,1, i1,2, i1,3,1, i1,4,1, i1,3,2, i1,4,2]**.
+- **i2**:
+  - When `subbandAmplitude = 'false'`, **υ = 1**: **i2 = [i2,1,1]**; **υ = 2**: **i2 = [i2,1,1, i2,1,2]**.
+  - When `subbandAmplitude = 'true'`, **υ = 1**: **i2 = [i2,1,1, i2,2,1]**; **υ = 2**: **i2 = [i2,1,1, i2,2,1, i2,1,2, i2,2,2]**.
+
+## Beam Selection
+- **L vectors** are identified by indices **i1,1** and **i1,2**:
+  - **i1,1 = [q1⁽⁰⁾, q1⁽¹⁾, ..., q1⁽L-1⁾]**, where **q1 ∈ {0, 1, ..., O1-1}**.
+  - **i1,2 = [q2⁽⁰⁾, q2⁽¹⁾, ..., q2⁽L-1⁾]**, where **q2 ∈ {0, 1, ..., O2-1}**.
+  - **i1,2 ∈ {0, 1, ..., C(N1N2, L)-1}**, where **C(x, y)** is the combinatorial coefficient from **Table 5.2.2.2.3-1**.
+- Beam indices **n1** and **n2**:
+  - **n1 = [n1⁽⁰⁾, n1⁽¹⁾, ..., n1⁽L-1⁾]**, **n1⁽i⁾ ∈ {0, 1, ..., N1-1}**.
+  - **n2 = [n2⁽⁰⁾, n2⁽¹⁾, ..., n2⁽L-1⁾]**, **n2⁽i⁾ ∈ {0, 1, ..., N2-1}**.
+- **Algorithm for n1, n2 from i1,2**:
+  - Initialize **s-1 = 0**.
+  - For **i = 0 to L-1**:
+    - Find the largest **x ∈ {0, 1, ..., N1N2-(L-i)-1}** such that **i1,2 ≥ s + C(x, L-i)**.
+    - Compute **e = i1,2 - s - C(x, L-i)**.
+    - Update **s = s + e**.
+    - **n1⁽i⁾ = floor(x / N2)**, **n2⁽i⁾ = x mod N2**.
+  - Indices are assigned such that **n⁽i⁾ = n1⁽i⁾N2 + n2⁽i⁾** increases with **i**.
+- **Reverse mapping for i1,2**:
+  - **i1,2 = Σ C(N1N2 - n⁽i⁾, L-i)** (sum from i = 0 to L-1).
+- **Special Cases**:
+  - If **N2 = 1**: **q2 = 0**, **n2⁽i⁾ = 0** for all i, and **i1,2** is not reported.
+  - If **(N1, N2) = (2, 1)**: **n1 = [0, 1]**, **n2 = [0, 0]**, **i1,2** not reported.
+  - If **(N1, N2) = (4, 1), L = 4**: **n1 = [0, 1, 2, 3]**, **n2 = [0, 0, 0, 0]**, **i1,2** not reported.
+  - If **(N1, N2) = (2, 2), L = 4**: **n1 = [0, 1, 0, 1]**, **n2 = [0, 0, 1, 1]**, **i1,2** not reported.
+
+## Amplitude and Phase Coefficients
+- **Strongest Coefficient**:
+  - Identified by **i1,3,l ∈ {0, 1, ..., 2L-1}** for layer **l** (l = 1 to υ).
+- **Amplitude Coefficient Indicators**:
+  - **i1,4,l = [k_l,0⁽¹⁾, k_l,1⁽¹⁾, ..., k_l,2L-1⁽¹⁾]**, **k_l,i⁽¹⁾ ∈ {0, 1, ..., 7}**.
+  - **i2,2,l = [k_l,0⁽²⁾, k_l,1⁽²⁾, ..., k_l,2L-1⁽²⁾]**, **k_l,i⁽²⁾ ∈ {0, 1}** (when `subbandAmplitude = 'true'`).
+  - Mapping of **k_l,i⁽¹⁾** to amplitude **p_l,i⁽¹⁾** (Table 5.2.2.2.3-2):
+    | **k_l,i⁽¹⁾** | **p_l,i⁽¹⁾** |
+    |--------------|--------------|
+    | 0            | 0            |
+    | 1            | 1/64         |
+    | 2            | 1/32         |
+    | 3            | 1/16         |
+    | 4            | 1/8          |
+    | 5            | 1/4          |
+    | 6            | 1/2          |
+    | 7            | 1            |
+  - Mapping of **k_l,i⁽²⁾** to amplitude **p_l,i⁽²⁾** (Table 5.2.2.2.3-3):
+    | **k_l,i⁽²⁾** | **p_l,i⁽²⁾** |
+    |--------------|--------------|
+    | 0            | 1/2          |
+    | 1            | 1            |
+- **Phase Coefficient Indicators**:
+  - **i2,1,l = [c_l,0, c_l,1, ..., c_l,2L-1]**, **c_l,i ∈ {0, 1, ..., NPSK-1}**.
+- **Reporting Rules**:
+  - Strongest coefficient (**i1,3,l**): **k_l,i1,3,l⁽¹⁾ = 7**, **k_l,i1,3,l⁽²⁾ = 1**, **c_l,i1,3,l = 0** (not reported).
+  - Remaining **2L-1** elements of **i1,4,l** are reported, where **k_l,i⁽¹⁾ > 0** for **Ml** coefficients.
+  - When `subbandAmplitude = 'false'`:
+    - **k_l,i⁽²⁾ = 1** for all i, **i2,2,l** not reported.
+    - **i2,1,l** reported for coefficients with **k_l,i⁽¹⁾ > 0** (excluding i1,3,l), others set to **c_l,i = 0**.
+  - When `subbandAmplitude = 'true'`:
+    - Report **i2,2,l** and **i2,1,l** for the **min(Ml, K⁽²⁾)-1** strongest coefficients (excluding i1,3,l).
+    - **K⁽²⁾** (Table 5.2.2.2.3-4): **L = 2: 4**, **L = 3: 4**, **L = 4: 6**.
+    - Report **i2,1,l** for **min(Ml, M-Ml)** weakest non-zero coefficients with **c_l,i ∈ {0, 1, 2, 3}**.
+    - Remaining **2L-Ml** elements of **i2,1,l** set to **c_l,i = 0**, **i2,2,l** set to **k_l,i⁽²⁾ = 1**.
+  - If two elements of **i1,4,l** are identical, prioritize the lower index for the strongest coefficient set.
+
+## Codebook Definition
+- **Table 5.2.2.2.3-5: Codebook for 1-layer and 2-layer CSI Reporting**:
+  - **1-layer (υ = 1)**:
+    - **W_q1,q2,n1,n2,p⁽¹⁾,p⁽²⁾,i2,1,1⁽¹⁾ = W_q1,q2,n1,n2,p⁽¹⁾,p⁽²⁾,i2,1,1 / √(2Σ p_l,i⁽¹⁾p_l,i⁽²⁾)**.
+  - **2-layer (υ = 2)**:
+    - Combines two precoders: **W⁽²⁾ = [W_q1,q2,n1,n2,p⁽¹⁾,p⁽²⁾,i2,1,1 / √2, W_q1,q2,n1,n2,p⁽¹⁾,p⁽²⁾,i2,1,2 / √2]**.
+  - **Precoder Formula**:
+    - **W_q1,q2,n1,n2,p⁽¹⁾,p⁽²⁾,i2,1,l = Σ (v_m1⁽i⁾,m2⁽i⁾ p_l,i⁽¹⁾ p_l,i⁽²⁾ φ_l,i)** (sum over i = 0 to L-1).
+    - **m1⁽i⁾ = O1n1⁽i⁾ + q1⁽i⁾**, **m2⁽i⁾ = O2n2⁽i⁾ + q2⁽i⁾**.
+    - **φ_l,i = e^(jπc_l,i / NPSK)** (phase coefficient).
+    - **v_m1,m2 = [u_m2, e^(j2πm1/(O1N1))u_m2, ..., e^(j2πm1(N1-1)/(O1N1))u_m2]ᵀ / √N1**.
+    - **u_m2 = [1, e^(j2πm2/(O2N2)), ..., e^(j2πm2(N2-1)/(O2N2))]ᵀ / √N2** (if N2 > 1, else u_m2 = 1).
+
+## Codebook Subset Restriction
+- **Bitmap Parameter**: `n1-n2-codebookSubsetRestriction` forms **B = B1B2**.
+- **Vector Groups**:
+  - Defined as **G(r1, r2) = v_r1N1+x, r2N2+x** for **x = 0 to min(N1, N2)-1**, **r1 ∈ {0, 1, ..., O1-1}**, **r2 ∈ {0, 1, ..., O2-1}**.
+  - UE configured with restrictions for 4 vector groups **G(r1⁽k⁾, r2⁽k⁾)**, identified by group indices **g⁽k⁾ = r1⁽k⁾O2 + r2⁽k⁾** (k = 0 to 3).
+- **B1** (when N2 > 1):
+  - Binary representation of **β1 = Σ C(O1O2 - g⁽k⁾, 4-k)** (sum over k = 0 to 3).
+  - Algorithm to derive **g⁽k⁾**, **r1⁽k⁾**, **r2⁽k⁾** from **β1** (similar to beam selection algorithm).
+  - If **N2 = 1**, **g⁽k⁾ = k**, **B1** is empty.
+- **B2**:
+  - Concatenation of **B2⁽k⁾** for k = 0 to 3, where **B2⁽k⁾ = [b_2N1N2-2,x⁽k⁾, b_2N1N2-1,x⁽k⁾]**.
+  - Bits indicate maximum allowed amplitude **p_l,i⁽¹⁾** for vectors in group **g⁽k⁾** (Table 5.2.2.2.3-6):
+    | **Bits (b_2N1N2-2,x⁽k⁾, b_2N1N2-1,x⁽k⁾)** | **Max p_l,i⁽¹⁾** |
+    |-----------------------------------------|------------------|
+    | 00                                      | 0                |
+    | 01                                      | 1/4              |
+    | 10                                      | 1/2              |
+    | 11                                      | 1                |
+  - UE not supporting `amplitudeSubsetRestriction` cannot be configured with **b_2N1N2-2,x⁽k⁾, b_2N1N2-1,x⁽k⁾ = 01 or 10**.
+
 ---
 
 ## Summary
-- The Type I Multi-Panel Codebook supports 1-4 layer CSI reporting for 8, 16, or 32 antenna ports, with configurations defined by **Ng**, **N1**, **N2**, and oversampling factors **O1**, **O2**.
-- Two codebook modes ('1' and '2') are available, with mode '2' restricted to **Ng = 2**.
-- PMI and RI reporting are controlled by bitmaps (**ng-n1-n2**, **ri-Restriction**) to enable or disable specific precoders or layers.
-- Precoder matrices are constructed using beamforming vectors, phase shifts, and power scaling, with detailed formulas for each mode and panel configuration.
-- The codebooks and mappings are detailed in tables for precise index assignments and precoder construction.
+- The Type II Codebook supports 1-2 layer CSI reporting for 4 to 32 antenna ports, with high-resolution beamforming using **L** beams (L = 2, 3, or 4).
+- Configured via parameters for antenna layout (**N1, N2**), beam count (**L**), phase granularity (**NPSK**), and subband amplitude control.
+- PMI reporting includes beam selection (**i1,1, i1,2**), amplitude (**i1,4,l, i2,2,l**), and phase (**i2,1,l**) coefficients, with special handling for the strongest coefficient.
+- Subband amplitude (`subbandAmplitude = 'true'`) enables finer amplitude granularity for a subset of coefficients.
+- Codebook subset restrictions limit vector groups and amplitude coefficients, ensuring efficient reporting.
+- Precoder construction combines beamforming vectors with amplitude and phase coefficients, normalized appropriately.
 
 ---
 
-These notes provide a clear and structured summary of the Type I Multi-Panel Codebook, focusing on configurations, parameters, and codebook structures. Let me know if you need further clarification or additional details!
+These notes provide a clear and structured summary of the Type II Codebook, focusing on configurations, indices, and codebook structures. Let me know if you need further clarification or additional details!
 
 ### 5.2.2.3 NZP CSI-RS
 
