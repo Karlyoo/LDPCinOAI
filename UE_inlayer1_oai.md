@@ -1,7 +1,7 @@
 # UE Tx and RX
 ## Architecture
 ```
-【 Uplink: UE TX (模擬傳送端) 】              【 Downlink: UE RX (模擬接收端) 】
+【 Uplink: UE TX (Simulation Transmitter) 】       【 Downlink: UE RX (Simulation Receiver) 】
 
 Input: MAC PDU (bytes)                      ┌──────────────────────────────┐
         ↓                                   │ OFDM FFT + CP remove         │
@@ -55,6 +55,7 @@ Input: MAC PDU (bytes)                      ┌───────────
 │ Input: TX samples            │
 │ Output: RX samples           │
 └──────────────────────────────┘
+
 
 ```
 
