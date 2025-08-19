@@ -35,41 +35,40 @@ function [W] = type1_codebook(nTxAnts, ri, i1, i2, N1, N2, O1, O2)
     nPortsBase = N1 * N2; 
     
     if nTxAnts ~= N1*N2 && ~isDualPolarized
-        % warning('nTxAnts (%d) does not match N1*N2 (%d) or 2*N1*N2 (%d).', nTxAnts, N1*N2, 2*N1*N2);
         W = [];
         return;
     end
     
-    L = 2; % 每個碼字由兩個 DFT 波束組合而成
+    L = 2; % Each codeword is formed by combining two DFT beams
     
-    % i1 決定了兩個 DFT 波束的選擇
+    % i1 determines the selection of the two DFT beams
     i1_1 = mod(floor(i1 / (O2 * N2)), O1 * N1); 
     i1_2 = mod(i1, O2 * N2);                    
     
-    % *** 核心修正：使用 ' 將向量轉置為直向向量 ***
+    % *** Key fix: use ' to transpose into a column vector ***
     u1_1 = exp(-1j * 2 * pi * (0:N1-1)' * i1_1 / (O1 * N1)) / sqrt(N1);
     u2_1 = exp(-1j * 2 * pi * (0:N2-1)' * i1_2 / (O2 * N2)) / sqrt(N2);
-    W1_base_1 = kron(u2_1, u1_1); % N1*N2 x 1 向量
+    W1_base_1 = kron(u2_1, u1_1); % N1*N2 x 1 vector
     
-    % 第二個波束 (簡化為相鄰索引)
+    % Second beam (simplified as adjacent index)
     i1_1_2 = mod(i1_1 + 1, O1 * N1);
     u1_2 = exp(-1j * 2 * pi * (0:N1-1)' * i1_1_2 / (O1 * N1)) / sqrt(N1);
     u2_2 = u2_1;
     W1_base_2 = kron(u2_2, u1_2);
     
-    % W1: 波束選擇矩陣 (nTxAnts x L)
+    % W1: beam selection matrix (nTxAnts x L)
     W1_base = [W1_base_1, W1_base_2]; % nPortsBase x L (e.g., 4x2)
     
     if isDualPolarized
-        W1 = kron(eye(2), W1_base); % 簡化的雙極化結構
+        W1 = kron(eye(2), W1_base); % Simplified dual-polarized structure
     else
         W1 = W1_base;
     end
     
-    % W2: 波束組合係數 (L x ri)
+    % W2: beam combination coefficients (L x ri)
     if ri == 1
-        phi = exp(1j * pi * i2 / 2); % 修正相位以匹配標準
-        W2 = [1; phi] / sqrt(2); % 2x1 矩陣
+        phi = exp(1j * pi * i2 / 2); % Phase correction to match standard
+        W2 = [1; phi] / sqrt(2); % 2x1 matrix
     elseif ri == 2
         if i2 == 0
             W2 = [1 0; 0 1]/sqrt(2);
@@ -82,7 +81,6 @@ function [W] = type1_codebook(nTxAnts, ri, i1, i2, N1, N2, O1, O2)
         end
     else
         W2 = [];
-        % error('RI > 2 not implemented for this codebook type');
     end
 
     if isempty(W2)
@@ -90,7 +88,7 @@ function [W] = type1_codebook(nTxAnts, ri, i1, i2, N1, N2, O1, O2)
         return;
     end
     
-    % 最終預編碼矩陣
+    % Final precoding matrix
     W = W1 * W2;
 end
 ```
