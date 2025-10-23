@@ -6,29 +6,29 @@
 
 LDPC File list
 ---
-| 檔案                  | 角色             | 模組層級                    | 實際內容                                   | 
-| ------------------- | -------------- | ----------------------- | --------------------------------------------- | 
-| `nr_ulsch_coding.c` | **LDPC 編碼主程式(上行)** | PHY Layer               | segmentation, CRC, LDPC encode, rate matching | 
-| `nr_dlsch_coding.c` | **LDPC 編碼主程式(下行)** | PHY Layer               | segmentation, CRC, LDPC encode, rate matching | 
+| File Name           | Role                                      | Module Level | Content                                         |
+| ------------------- | ----------------------------------------- | ------------ | ----------------------------------------------- |
+| `nr_ulsch_coding.c` | **Main LDPC encoding routine (uplink)**   | PHY Layer    | segmentation, CRC, LDPC encoding, rate matching |
+| `nr_dlsch_coding.c` | **Main LDPC encoding routine (downlink)** | PHY Layer    | segmentation, CRC, LDPC encoding, rate matching |
 
 
- 
-| Directory Path         | Description |函式|
-|------------------------|-------------|----|
-| `ldpc_encoder.c`            | Main controller of the LDPC encoding process. |`LDPCencoder()`|
-| `ldpc_encode_parity_check.c`   | Uses mod-2 operations, bit shifts, and cyclic shifts to construct the final codeword. | |
-| `nr_rate_matching.c`     | 碼率匹配               | `nr_rate_matching_ldpc()`              |
-| `nr_interleaving.c`      | 比特交錯               | `nr_interleaving_ldpc()`               |
-| `nrLDPC_coding_segment_encoder.c`       | 經過分段處理的程式會送進此程式，執行LDPC encoding | `nrLDPC_coding_encoder()`|
-| `nrLDPC_coding_segment_encoder.c` | 為每個 CB 建立編碼任務      | `nrLDPC_launch_TB_encoding()`  |
-|  `nrLDPC_coding_segment_encoder.c`            | 進行單個 8-block 的編碼處理 | `ldpc8blocks()`                                 |
-|`ldpc_encode_parity_check.c`|執行 parity 計算|`encode_parity_check_part_optim()`|
+| Directory Path                    | Description                                                                          | Function                           |
+| --------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------- |
+| `ldpc_encoder.c`                  | Main controller for LDPC encoding                                                    | `LDPCencoder()`                    |
+| `ldpc_encode_parity_check.c`      | Uses mod-2 operations, bit shifts, and cyclic shifts to construct the final codeword |                                    |
+| `nr_rate_matching.c`              | Rate Matching                                                                        | `nr_rate_matching_ldpc()`          |
+| `nr_interleaving.c`               | Bit Interleaving                                                                     | `nr_interleaving_ldpc()`           |
+| `nrLDPC_coding_segment_encoder.c` | Handles segment-based LDPC encoding                                                  | `nrLDPC_coding_encoder()`          |
+| `nrLDPC_coding_segment_encoder.c` | Creates encoding tasks for each Code Block (CB)                                      | `nrLDPC_launch_TB_encoding()`      |
+| `nrLDPC_coding_segment_encoder.c` | Encodes one 8-block segment                                                          | `ldpc8blocks()`                    |
+| `ldpc_encode_parity_check.c`      | Executes parity computation                                                          | `encode_parity_check_part_optim()` |
+
 
 
 ## coding
 **openair1/PHY/NR_UE_TRANSPORT/nr_ulsch_coding.c**
-實現 5G NR UE 的上行共享通道 (ULSCH) 編碼流程
-- 資料準備：從輸入參數中提取TB的配置（如大小、調製方式、編碼率等）。
+This file implements the ULSCH (Uplink Shared Channel) encoding process for 5G NR UE.
+- data：Extracts the transport block (TB) configuration from input parameters (e.g., size, modulation type, coding rate, etc.):
 ```
    int nr_ulsch_encoding(PHY_VARS_NR_UE *ue,
                       NR_UE_ULSCH_t *ulsch,
@@ -37,13 +37,13 @@ LDPC File list
                       unsigned int *G,
                       int nb_ulsch,
                       uint8_t *ULSCH_ids)
-- ue：指向 UE 在PHY的結構，包含 UE 的配置和狀態。
-- ulsch：指向 ULSCH 結構，包含上行共享通道的配置（如 PUSCH PDU）。
-- frame：在執行的幀編號。
-- slot：在執行的時隙編號。
-- G：編碼後的數據bits數 (碼塊大小)，每個 PUSCH 對應一個 G 值。
-- nb_ulsch：需要處理的 PUSCH (Physical Uplink Shared Channel) 數量。
-- ULSCH_ids：ULSCH 的 ID 陣列，用於搜尋不同的 ULSCH 實例。
+- ue: Pointer to the UE PHY structure, containing configuration and state.
+- ulsch: Pointer to the ULSCH structure (e.g., PUSCH PDU).
+- frame: Frame index.
+- slot: Slot index.
+- G: Total number of coded bits (per PUSCH).
+- nb_ulsch: Number of PUSCH instances.
+- ULSCH_ids: Array of ULSCH identifiers.
 ```
 ```
 unsigned int crc = 1;
@@ -58,13 +58,13 @@ unsigned int crc = 1;
     LOG_D(NR_PHY, "ulsch coding nb_rb %d, Nl = %d\n", nb_rb, pusch_pdu->nrOfLayers);
     LOG_D(NR_PHY, "ulsch coding A %d G %d mod_order %d Coderate %f\n", A, G[pusch_id], Qm, Coderate);
     LOG_D(NR_PHY, "harq_pid %d, pusch_data.new_data_indicator %d\n", harq_pid, pusch_pdu->pusch_data.new_data_indicator);
-    從 ulsch 和 ue 中提取相關參數，如：
-    - harq_pid：HARQ (Hybrid Automatic Repeat reQuest)  ID。
-    - nb_rb：分配的資源塊 (Resource Blocks) 數量。
-    - Qm：調製階數 (Modulation Order，如 QPSK、16QAM 等)。
+   - From ulsch and ue, the following are extracted:
+      - harq_pid: HARQ process ID
+      - nb_rb: Number of allocated Resource Blocks  
+      - Qm: Modulation order (e.g., QPSK, 16QAM, etc.)
 
 ```
-- CRC 添加：為傳輸塊添加 CRC，用於錯誤檢測。
+- CRC Attachment：Adds CRC for error detection.
 ```
   if (A > NR_MAX_PDSCH_TBS) {
     crc = crc24a(harq_process->payload_AB, A) >> 8;
@@ -78,10 +78,9 @@ unsigned int crc = 1;
     harq_process->payload_AB[1 + (A >> 3)] = ((uint8_t *)&crc)[0];
     B = A + 16;
 }
-**大的加24bits,小的加16bits。
 ```
 
-- 分段：將大傳輸塊分割成多個小塊，符合 LDPC 編碼需求。
+- Segmentation: Splits a large TB into smaller code blocks for LDPC encoding.
 
 ```
 TB_parameters->Kb = nr_segmentation(harq_process->payload_AB,
@@ -92,17 +91,17 @@ TB_parameters->Kb = nr_segmentation(harq_process->payload_AB,
                                     &harq_process->Z,
                                     &harq_process->F,
                                     harq_process->BG);
-**Input：
-payload_AB：包含 CRC 的資料。
-B：總bits數（包括 CRC）。
-BG：LDPC Base Graph，決定編碼結構。
-**Output：
-C：segment數量。
-K：每個segment的bits數。
-Z：LDPC segment的 Lifting Size。
-F：填充bits數(資料bits不到K時，為保持對齊)。
-Kb：BG中資料bits的列數。
-**分段為使ldpc正確編碼。
+- Inputs:
+  - payload_AB: Data with CRC
+  - B: Total bits (with CRC)
+  - BG: LDPC Base Graph
+- Outputs:
+  - C: Number of segments
+  - K: Bits per segment
+  - Z: Lifting size
+  - F: Number of filler bits
+  - Kb: Number of data columns in BG
+Segmentation ensures LDPC operates on correctly sized code blocks.
  ```
 
 
@@ -110,32 +109,11 @@ Kb：BG中資料bits的列數。
 **nrLDPC_coding_segment**
 - nrLDPC_coding_segment_encoder.c
 - nr_rate_matching.c
-- 由nr_dlsch_coding.c/nr_dlsch_encoding()呼叫)**
-   -  分段（Segmentation）
-   -  CRC 附加（CRC Attachment）呼叫crc_byte.c裡的函式
-   -  Z、K 等參數計算
-   -  F 補零數量（若有）
-   
-ldpc_encoder.c
----
-
-![image](https://hackmd.io/_uploads/SJgF9UVEgg.png)
-
-FROM https://www.mdpi.com/1424-8220/21/18/6266
-
-```
-#include <stdlib.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-#include "defs.h"
-#include "assertions.h"
-#include "openair1/PHY/CODING/nrLDPC_defs.h"
-#include "openair1/PHY/CODING/nrLDPC_extern.h"
-#include "ldpc_generate_coefficient.c"
-```
-1. `nrLDPC_defs.h` includes all the necessary parameters for the encoding process. eg.block length
-2. `ldpc_generate_coefficient.c` 
+- Called by nr_dlsch_coding.c / nr_dlsch_encoding()
+  - Segmentation
+  - CRC Attachment
+  - Z, K, F computation
+  - Zero padding (if needed)
 ```
 int LDPCencoder(unsigned char **inputArray, unsigned char *outputArray, encoder_implemparams_t *impp)
 {
@@ -163,19 +141,21 @@ const short *Gen_shift_values = choose_generator_matrix(BG, Zc);
   }
 ```
 To choose the 'Generator Matrix',we need to know the BG and Zc. BG=Base Gragh,often in 1 or 2. 
-we will get a short type pointer matrix. It means Shift values table(構造 LDPC parity-check matrix H 的位移值).
+we will get a short type pointer matrix. It means Shift values table.
 
 The front one is BG1,and the following one is BG2.
 
  KEY parameters in ldpc encode 
 ---
-參數	|說明|
------|------
-BG, Zc, Kb|	定義 parity-check matrix 結構
-K, F	|定義實際 LDPC encoder 的輸入長度與填 0 數量
-C|	多少個 segment（Code Block）
-d[]|	編碼輸出的中繼 buffer，大小是 68*384（最大可能編碼位元）
-c[]|	每個 segment 的輸出指標，會寫回去最終 output
+| Parameter  | Description                                    |
+| ---------- | ---------------------------------------------- |
+| `Kb`       | Number of information bits                     |
+| `K`        | Actual encoder input length (includes padding) |
+| `BG`, `Zc` | Define the parity-check matrix structure       |
+| `C`        | Number of segments (Code Blocks)               |
+| `d[]`      | Encoded output buffer (up to 68×384 bits)      |
+| `c[]`      | Intermediate bit array (input segment)         |
+
 
 
 **Spilt to code word.**
@@ -230,12 +210,13 @@ memcpy(&output[0], &c[2 * Zc], block_length - 2 * Zc);
 **ldpc_encode_parity_check.c**
 ---
 
-|步驟 |	內容 |
-|-----|----------|
-|(1) Initialize c[]	|Build a double copied data array,in using of  SIMD process.|
-|(2) 將系統位元 cc 重複複製進 c[]	|為 SIMD 資料對齊。|
-|(3) 多次擴展 c[]	|擴展為多通道形式供 SIMD 平行處理。|
-|(4)Call the corresponding hardcoded parity function(ldpcXX_byte.c	)|執行真正的 parity 計算，並將結果寫到 d。|
+| Step                                       | Description                                           |
+| ------------------------------------------ | ----------------------------------------------------- |
+| (1) Initialize `c[]`                       | Build double-sized buffer for SIMD alignment          |
+| (2) Duplicate system bits                  | Ensure data alignment for vector operations           |
+| (3) Expand `c[]`                           | Prepare multi-channel structure for SIMD              |
+| (4) Call parity function (`ldpcXX_byte.c`) | Execute parity computation and write results to `d[]` |
+
 
 Creating a double-length c[] buffer is essential for supporting SIMD alignment, data expansion, and error avoidance. It forms the foundation for accelerating the parity calculation.
 SIMD (Single Instruction, Multiple Data) is a CPU vectorization acceleration technique that can process many data elements simultaneously.
@@ -246,129 +227,21 @@ To use SIMD, two important conditions must be met:
 Therefore, OAI expands the original cc[] buffer by a factor of two, duplicating each Zc block twice. In LDPC parity calculation, data needs to be shifted by certain offsets for XOR operations. If the data is not contiguous in memory, it may cause errors or partial reads.
 
 **nrLDPC_coding_segment_encoder.c**
----
-- 主要負責實作 整體 LDPC 編碼流程的頂層整合，屬於 5G NR 下行/上行傳輸的實體層編碼總控模組
-- nrLDPC_coding_encoder()<br>
-         └── nrLDPC_launch_TB_encoding()<br>
-  _________                └── ldpc8blocks()   
+- Integrates the overall LDPC encoding pipeline for both uplink/downlink PHY layer.
+- Function hierarchy:
 
-- **nrLDPC_coding_encoder** 對一個 slot 中所有 Transport Blocks (TBs) 執行 LDPC 編碼，並將編碼後的輸出寫入對應 buffer
-- **nrLDPC_launch_TB_encoding** 一個完整傳輸區塊 (TB) 的 LDPC 編碼任務流程控制器，創建並派送對應的執行緒任務給 ldpc8blocks() 處理每 8 個 segments 的編碼
-- **ldpc8blocks()**  在一個執行緒中處理 最多 8 個 LDPC segments 
-   - 把一整個 Slot 中的所有 Transport Blocks (TB)，依照 5G NR 標準進行：
-      - LDPC Encoding:`LDPCencoder(c, d, impp)`
-      - Rate Matching:`nr_rate_matching_ldpc()`
-      - Bit Interleaving (交錯處理):`nr_interleaving_ldpc()`
-      - Output result 
-    - 每 8 個 segments 為一個任務
+nrLDPC_coding_encoder()
+└── nrLDPC_launch_TB_encoding()
+└── ldpc8blocks()
+
+- Descriptions:
+  - nrLDPC_coding_encoder: Encodes all TBs in a slot.
+  - nrLDPC_launch_TB_encoding: Manages each TB encoding task, dispatching threads to ldpc8blocks().
+  - ldpc8blocks(): Encodes up to 8 LDPC segments per thread.
+     - LDPC encoding: LDPCencoder(c, d, impp)
+     - Rate matching: nr_rate_matching_ldpc()
+     - Bit interleaving: nr_interleaving_ldpc()
 
 
-# decode
-- 程式入口為```nr_dlsch_decoding.c```
-### nr_dlsch_decoding.c
-```
-void nr_ue_dlsch_init(NR_UE_DLSCH_t *dlsch_list, int num_dlsch, uint8_t max_ldpc_iterations) {
-  for (int i=0; i < num_dlsch; i++) {
-    NR_UE_DLSCH_t *dlsch = dlsch_list + i;
-    memset(dlsch, 0, sizeof(NR_UE_DLSCH_t));
-    dlsch->max_ldpc_iterations = max_ldpc_iterations;
-  }
-}
-```
-- 初始化 DLSCH 通道結構
-  - 迴圈處理：遍歷所有需要初始化的 DLSCH 結構。
-  - 清空記憶體：使用 memset 將每個結構的記憶體全部設為 0，確保沒有殘留的舊資料。
-  - 設定參數：將傳入的 max_ldpc_iterations 參數寫入結構中。這是 LDPC 解碼演算法的一個重要設定，會影響解碼效能和運算複雜度。
 
-```
-void nr_dlsch_unscrambling(int16_t *llr, uint32_t size, uint8_t q, uint32_t Nid, uint32_t n_RNTI)
-{
-  nr_codeword_unscrambling(llr, size, q, Nid, n_RNTI);
-}
-```
-- 做還原scramble的動作
-- llr：從解調器（Demodulator）輸出的軟位元（Log-Likelihood Ratios, LLRs），代表每個位元是 0 還是 1 的可能性。
-- size：LLR 陣列的大小。
-- q：碼字（Codeword）的索引，因為一個傳輸塊（Transport Block）可能對應到多個碼字。
-- Nid 和 n_RNTI：用於產生和發送端完全相同的擾碼序列的必要參數，分別是細胞 ID 和使用者臨時識別碼。
-```
-void nr_dlsch_decoding(PHY_VARS_NR_UE *phy_vars_ue,
-                       const UE_nr_rxtx_proc_t *proc,
-                       NR_UE_DLSCH_t *dlsch,
-                       int16_t **dlsch_llr,
-                       uint8_t **b,
-                       int *G,
-                       int nb_dlsch,
-                       uint8_t *DLSCH_ids)
-```
-- 執行 LDPC 解碼：對輸入的 LLR 進行 LDPC 解碼，嘗試修正錯誤。
-- 速率恢復（Rate Dematching）：還原傳輸前的速率匹配操作。
-- CRC 校驗：解碼完成後，會計算資料塊的循環冗餘校驗碼（CRC）。如果計算出的 CRC 與資料中包含的 CRC 相符，則表示解碼成功；反之則表示解碼失敗。
-
-<img width="388" height="803" alt="image" src="https://github.com/user-attachments/assets/9fa47ab7-b330-4b46-8d48-b4fb31d5da2d" />
-
-```
-| 流程步驟                      | 說明                               |                                         
-| ------------------------- | -------------------------------- | 
-| Start Decoder             | 啟動解碼器流程                          |
-| Load Parameters / Buffers | 設定 C、K、Z、E、F、LLR 等資訊             | 
-| BN → CN 初始處理              | Variable nodes 傳遞資訊給 Check nodes | 
-| CN → BN 初始處理              | Check nodes 計算校驗並回傳給變數節點         |
-| First Parity Check        | 嘗試解出正確 codeword                  | 
-| Output Bits               | 若成功，輸出 b\[], 否則重傳                | 
-| Iterative Loop            | 進行最多 `max_ldpc_iterations` 次反覆計算 | 
-| CN Processing             | 更新所有 parity constraints          | 
-| CN→BN 回傳                  | 傳遞回 variable node                | 
-| BN Processing             | 更新變數節點訊息                         | 
-```
-
-- 主入口函式為: nrLDPC_decoder_core in nrLDPC_decoder.c
-- Decoder Setup
-   - 載入 LUT（lookup tables）：供後續 CN/BN 運算使用
-   - 初始化緩衝區：分別為 CN、BN 與 LLRs 分配記憶體空間
-   - 資料對齊與 SIMD 準備：便於後續使用 AVX 加速
-**LUT**
-- LUT 是一種預先建立好資料的「表格」，讓演算法可以用索引快速查出對應值，而不是每次都重複計算
-- 為什麼使用 LUT？:
-   - 速度快、節省運算資源、適合定義明確的映射關係
- 
-**SIMD**
-- SIMD 是一種 CPU 向量運算技術，允許一條指令同時操作多筆資料
-- 在 LDPC 解碼中如何用到 SIMD
-```
-| 階段          | SIMD 加速的用途                               |
-| ----------- | ---------------------------------------- |
-| LLR 輸入處理    | 加速整批 bit 或 symbol 的 LLR 計算與存取            |
-| BN→CN 訊息傳遞  | 同時處理多個 variable node 的 message           |
-| CN→BN 訊息傳遞  | 比對最小值（min-sum），適合用 SIMD 做 parallel min() |
-| CRC 計算      | 多 bit 並行 XOR                             |
-| LLR 解調（調變器） | 輸入 IQ 值轉換為 LLR 時用 SIMD 加速 inner product  |
-```
-- First Pass Processing
-   - BN Pre-processing with nrLDPC_bnProcPc_* (rate & BG-specific)
-   - CN Pre-processing via nrLDPC_bn2cnProcBuf_*
-   - First CN processing: nrLDPC_cnProc_*
-   - Back-propagate to BN via nrLDPC_cn2bnProcBuf_*
- 
-- Iterative Decoding Loop
-**執行條件**
-  - numIter < numMaxIter
-  - Parity check (or CRC) failed
- 
-- Steps per iteration
-   - CN 運算
-   - 將 CN 傳回 BN 的訊息
-   - BN 運算（更新 soft LLR）
-   - 準備下一輪 CN 輸入
-   - 進行 Parity Check 或 CRC 驗證
- 
-- Early Termination
-   - If check_crc is enabled
-     - 解碼後會使用 CRC 驗證硬判定資料
-     - 若通過驗證，提前結束迴圈
-   - 若未啟用 CRC：
-     - 每次都執行 parity-check 決定是否提早終止
-
-- Output Formatting
-- Output mode: LLRINT8, BIT, or BITINT8
 
