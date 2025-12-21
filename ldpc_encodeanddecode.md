@@ -242,6 +242,40 @@ nrLDPC_coding_encoder()
      - Rate matching: nr_rate_matching_ldpc()
      - Bit interleaving: nr_interleaving_ldpc()
 
+```mermaid
+graph LR
+    %% 定義樣式
+    classDef main fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef sub fill:#e1f5fe,stroke:#333,stroke-width:1px;
+    
+    Start((MAC 資料輸入<br>TB Payload)):::main --> Prep
 
+    subgraph Prep [第一階段：資料準備]
+        direction TB
+        A[參數提取 & CRC 附加<br>Func: nr_ulsch_encoding] --> B[分段 Segmentation<br>Func: nr_segmentation]
+        B -->|計算參數| C[準備編碼任務]
+        
+        note1[計算 BG 與 Zc]
+        B -.- note1
+    end
 
+    Prep --> Core
+
+    subgraph Core [第二階段：分段編碼 Loop]
+        direction TB
+        LoopStart{對每個 Segment<br>多執行緒並行} --> D[LDPC 核心編碼<br>Func: LDPCencoder]
+        
+        D --> E[奇偶校驗位計算<br>Func: ldpc_encode_parity_check]
+    end
+
+    Core --> Post
+
+    subgraph Post [第三階段：後處理]
+        direction TB
+        F[速率匹配<br>Func: nr_rate_matching_ldpc] --> G[位元交錯<br>Func: nr_interleaving_ldpc]
+        G --> H[串接所有 Segments]
+    end
+
+    Post --> EndNode((輸出編碼位元<br>To Modulation)):::main
+ ```
 
