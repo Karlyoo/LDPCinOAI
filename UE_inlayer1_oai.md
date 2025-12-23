@@ -174,16 +174,16 @@ Implements the PHY transmission procedure for the 5G NR Uplink Shared Channel (U
 
 | 流程方塊 | 3GPP 規範 | OAI 函式 | 檔案位置 |
 | :--- | :--- | :--- | :--- |
-| **CRC 附加** (Tx) | TS 38.212 §5.1 | `crc_byte` / `crc24c` | `crc_byte.c` |
-| **LDPC 編碼** (Tx) | TS 38.212 §5.3.2 | `nrLDPC_encoder` | `nrLDPC_encoder.c` |
-| **調變** (Tx) | TS 38.211 §6.3.2 | `nr_modulation` | `nr_modulation.c` |
-| **層映射與預編碼** (Tx) | TS 38.211 §6.3.1 | `nr_layer_mapping`<br>`nr_layer_precoder` | `nr_layer_mapping.c`<br>`nr_layer_precoder.c` |
-| **資源映射** (Tx) | TS 38.211 §7.4.1 | `nr_generate_pdsch` | `nr_dlsch.c` |
-| **OFDM 調變** (Tx) | TS 38.211 §5.3 | `nr_ofdm_mod` | `nr_ofdm_mod.c` |
-| **通道模擬** | N/A | `new_channel_desc_scm` | `random_channel.c` |
-| **OFDM 解調** (Rx) | TS 38.211 §5.3 | `nr_ofdm_demod` | `nr_ofdm_demod.c` |
-| **資源解映射與估測** (Rx) | TS 38.211 §6.3/6.4 | `nr_ulsch_extract_rbs`<br>`nr_pusch_channel_estimation` | `nr_ulsch_demodulation.c`<br>`nr_pusch_channel_estimation.c` |
-| **等化與層解映射** (Rx) | N/A | `nr_ulsch_channel_compensation` | `nr_ulsch_demodulation.c` |
-| **LLR 計算** (Rx) | TS 38.211 §7.3.1 | `nr_ulsch_compute_llr` | `nr_ulsch_demodulation.c` |
-| **LDPC 解碼** (Rx) | TS 38.212 §5.3.2 | `nr_ulsch_decoding`<br>`nrLDPC_coding_decoder` | `nr_ulsch_decoding.c` |
-| **CRC 檢查** (Rx) | TS 38.212 §5.1 | `crc_parity_check` | `crc_byte.c` |
+| **CRC attachment(CRC附加)** (Tx) | TS 38.212 §5.1 | `crc_byte` / `crc24c` | `crc_byte.c` |
+| **LDPC Encoding(LDPC編碼)** (Tx) | TS 38.212 §5.3.2 | `nrLDPC_encoder` | `nrLDPC_encoder.c` |
+| **Modulation(調變)** (Tx) | TS 38.211 §6.3.2 | `nr_modulation` | `nr_modulation.c` |
+| **Layer Mapping & Precoding (層映射與預編碼)** (Tx) | TS 38.211 §6.3.1 | `nr_layer_mapping`<br>`nr_layer_precoder` | `nr_layer_mapping.c`<br>`nr_layer_precoder.c` |
+| **Resource Mapping(資源映射)** (Tx) | TS 38.211 §7.4.1 | `nr_generate_pdsch` | `nr_dlsch.c` |
+| **OFDM Modulation(OFDM調變)** (Tx) | TS 38.211 §5.3 | `nr_ofdm_mod` | `nr_ofdm_mod.c` |
+| **Simulate Channel(通道模擬)** | N/A | `new_channel_desc_scm` | `random_channel.c` |
+| **OFDM Demodulation(OFDM解調)** (Rx) | TS 38.211 §5.3 | `nr_ofdm_demod` | `nr_ofdm_demod.c` |
+| **Resource Demapping & Channel Estimation (資源解映射與估測)** (Rx) | TS 38.211 §6.3/6.4 | `nr_ulsch_extract_rbs`<br>`nr_pusch_channel_estimation` | `nr_ulsch_demodulation.c`<br>`nr_pusch_channel_estimation.c` |
+| **Equalization & Layer Demapping(等化與層解映射)** (Rx) | N/A | `nr_ulsch_channel_compensation` | `nr_ulsch_demodulation.c` |
+| **Demodulation,LLR Computation)(解調,LLR 計算)** (Rx) | TS 38.211 §7.3.1 | `nr_ulsch_compute_llr` | `nr_ulsch_demodulation.c` |
+| **LDPC Decoding(LDPC解碼)** (Rx) | TS 38.212 §5.3.2 | `nr_ulsch_decoding`<br>`nrLDPC_coding_decoder` | `nr_ulsch_decoding.c` |
+| **CRC check(CRC檢查)** (Rx) | TS 38.212 §5.1 | `crc_parity_check` | `crc_byte.c` |
